@@ -1,4 +1,4 @@
-#include "thermal.h"
+#include "../lib/thermal.h"
 
 BOOL thermal_read(BYTE address, BYTE *data)
 {

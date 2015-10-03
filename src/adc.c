@@ -5,7 +5,7 @@
  *  Author: b.christol
  */ 
 
-#include "port.h"
+#include "../lib/port.h"
 
 void adc_init()
 {

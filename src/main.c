@@ -3,17 +3,17 @@
 /************************************************************************/
 
 
-#include "cpu.h"
+#include "../lib/cpu.h"
 #include <stdio.h>
 #include <avr/io.h>
 #include <util/delay.h>
 
-#include "twi.h"
-#include "port.h"
-#include "uart.h"
-#include "types.h"
-#include "thermal.h"
-#include "generics.h"
+#include "../lib/twi.h"
+#include "../lib/port.h"
+#include "../lib/uart.h"
+#include "../lib/types.h"
+#include "../lib/thermal.h"
+#include "../lib/generics.h"
 
 #define TAILLE_DATA 4*4
 #define ADC_CH_IR_RIGHT	0

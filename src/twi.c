@@ -8,12 +8,12 @@
  * Comments : None.
  **/
 
-#include "cpu.h"
+#include "../lib/cpu.h"
 #include <stdio.h>
 #include <avr/interrupt.h>
 
-#include "generics.h"
-#include "twi.h"
+#include "../lib/generics.h"
+#include "../lib/twi.h"
 
 // [+]General TWI Master status codes:
 #define TWI_START					0x08  // START has been transmitted.
