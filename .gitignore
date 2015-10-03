@@ -1,3 +1,7 @@
+*.atsuo
+*.atsln
+*.cproj
+
 Thumbs.db
 *.obj
 *.exe
@@ -245,6 +249,3 @@ FakesAssemblies/
 **/*.Server/GeneratedArtifacts
 **/*.Server/ModelManifest.xml
 _Pvt_Extensions
-
-*.atsuo
-tracking.atsuo

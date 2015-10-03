@@ -93,8 +93,8 @@ int main(void)
 		distanceIRrLeft = sharp_IR_interpret_GP2Y0A02YK(adcResult);
 		
 		/* PRINT */
-		uart_putchar(distanceIrRight)
-		uart_putchar(distanceIRrLeft)
+		uart_putchar(distanceIrRight);
+		uart_putchar(distanceIRrLeft);
  		}
 		 
 	 
