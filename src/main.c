@@ -19,6 +19,8 @@
 #define ADC_CH_IR_RIGHT	0
 #define ADC_CH_IR_LEFT	1
 
+//Globalvar.
+BYTE thermal_data[THERMAL_BUFF_SIZE];
 
 void setup(void)
 {
@@ -68,8 +70,7 @@ int main(void)
 		
 		/*** TEST THERMAL SENSOR ***/		
 		thermal_read(0x14, thermalData);
-	
-		_delay_ms(1000);	
+		//mesure_thermal(thermal_data, THERMAL_BUFF_SIZE-1);
 	
 		//printf("\n\rthermalData : ");
 	
@@ -95,6 +96,8 @@ int main(void)
 		/* PRINT */
 		uart_putchar(distanceIrRight);
 		uart_putchar(distanceIRrLeft);
+		
+		_delay_ms(1000);	
  		}
 		 
 	 

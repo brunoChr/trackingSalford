@@ -6,6 +6,7 @@
  */ 
 
 #include "../lib/port.h"
+#include "../lib/adc.h"
 
 void adc_init()
 {
