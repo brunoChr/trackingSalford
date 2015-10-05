@@ -12,8 +12,8 @@
 *.mk
 Makefile
 TcfTransactionLog.csv
-*.atsln
-*.cproj
+#*.atsln
+#*.cproj
 
 Thumbs.db
 *.obj
