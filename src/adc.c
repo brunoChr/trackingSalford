@@ -8,6 +8,10 @@
 #include "../lib/port.h"
 #include "../lib/adc.h"
 
+/* TODO
+
+*/
+
 void adc_init()
 {
 	// AREF = AVcc
