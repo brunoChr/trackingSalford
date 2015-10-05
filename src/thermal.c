@@ -28,6 +28,7 @@ unsigned char calc_crc( unsigned char data )
 		temp = data;
 		data <<= 1;
 		if(temp & 0x80) data ^= 0x07;
+		printf(data);
 	}
 	return data;
 }
@@ -52,7 +53,7 @@ int mesure_thermal(BYTE *thermal_data, BYTE size)
 	BYTE tPEC;
 	
 	if(!D6T_checkPEC(thermal_data,size)){
-		return - 1; // e r r o r
+		return -1; // e r r o r
 	}
 	thermal_read(THERMAL_ADD,thermal_data);
 	tPTAT=256*thermal_data[1]+thermal_data[0];
@@ -74,8 +75,10 @@ int mesure_thermal(BYTE *thermal_data, BYTE size)
 	tP[15]=256*thermal_data[33]+thermal_data[32];
 	tPEC=thermal_data[34];
 	
+	uart_putchar(tPTAT);
 	for(int i=0;i<16;i++){
 		uart_putchar(tP[i]*128/256);
 	}
+	uart_putchar(tPEC);
 	return 0;
 }

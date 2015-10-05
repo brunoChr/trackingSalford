@@ -72,15 +72,10 @@ int main(void)
 	{	
 		
 		/*** TEST THERMAL SENSOR ***/		
-		//thermal_read(0x14, thermalData);
 		//mesure_thermal(thermal_data, THERMAL_BUFF_SIZE-1);
 	
 		//printf("\n\rthermalData : ");
 	
-		/*for (index = 0; index < THERMAL_BUFF_SIZE; index++ )
-		{
-			uart_putchar(thermalData[index]);
-		}*/
 				
 		/*** TEST ADC CHANNEL 0 ***/
 		adcResultCh0 = adc_read(ADC_CH_IR_RIGHT);
