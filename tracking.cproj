@@ -96,10 +96,16 @@
     <Compile Include="lib\generics.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="lib\infrared.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="lib\kalmanFilter.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="lib\port.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="lib\pwm.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="lib\serialData.h">
@@ -130,6 +136,9 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\port.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\pwm.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\serialData.c">

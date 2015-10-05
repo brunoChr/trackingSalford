@@ -5,6 +5,7 @@
  *  Author: b.christol
  */ 
 
+#include "../lib/infrared.h"
 
 /*	TODO
 	maybe filter : mean, average, khalman Filer

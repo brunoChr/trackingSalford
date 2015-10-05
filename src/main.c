@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <avr/io.h>
 #include <util/delay.h>
+#include <avr/interrupt.h>
 
 #include "../lib/twi.h"
 #include "../lib/port.h"
@@ -14,6 +15,10 @@
 #include "../lib/types.h"
 #include "../lib/thermal.h"
 #include "../lib/generics.h"
+#include "../lib/adc.h"
+#include "../lib/pwm.h"
+#include "../lib/infrared.h"
+
 
 #define TAILLE_DATA 4*4
 #define ADC_CH_IR_RIGHT	0
@@ -30,6 +35,7 @@ void setup(void)
 	uart_init(9600);
 	//servo_init();
 	adc_init();
+	pwm_init();
 	//LCD_init();
 	if(!twi_init(100000)) // Init I2C  with 100KHz bitrate.
 	{
@@ -101,9 +107,27 @@ int main(void)
 		//uart_putchar(distanceIrRight);
 		//uart_putchar(distanceIRrLeft);
 		
-		_delay_ms(1000);	
+		
+		/*** TEST PWM SERVO ***/
+		pwm_positionCentrale();
+		
+		_delay_ms(5000);
+		
+		cli();
+			
  		}
 		 
 	 
 	return(0);
+}
+
+
+ISR(TIMER1_OVF_vect)
+{
+	/*
+	* Routine d'interruption activee lors d'un
+	* overflow du timer1
+	*/
+	
+	PORTB |= (1 <<PORTB5);
 }
