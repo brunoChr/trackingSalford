@@ -8,6 +8,7 @@
 #include <avr/io.h>
 #include <util/delay.h>
 #include <avr/interrupt.h>
+#include <util/atomic.h>
 
 #include "../lib/twi.h"
 #include "../lib/port.h"
@@ -45,6 +46,12 @@ void setup(void)
 	/*** END OF INIT PART ***/	
 }
 
+
+/*!
+ * Main function.
+ *
+ * Ref adc_read(), sharp_IR_interpret_GP2Y0A02YK(), pwm_positionCentrale().
+ */
 int main(void)
 {
 	BYTE randData;
@@ -82,7 +89,9 @@ int main(void)
 	
 		//printf("\n\rthermalData : ");
 	
-				
+		ATOMIC_BLOCK(ATOMIC_FORCEON)
+		{
+		
 		/*** TEST ADC CHANNEL 0 ***/
 		adcResultCh0 = adc_read(ADC_CH_IR_RIGHT);
 		
@@ -96,6 +105,8 @@ int main(void)
 		/*** TEST IR SENSOR ***/
 		distanceIRrLeft = sharp_IR_interpret_GP2Y0A02YK(adcResultCh1);
 		
+		}
+		
 		/* PRINT ADC VALUES */
 		printf("%d\t%d\t%d\t%d\r",adcResultCh0, adcResultCh1, distanceIrRight, distanceIRrLeft);
 		//printf("%d\t%d\r",distanceIrRight, distanceIRrLeft);
@@ -108,7 +119,7 @@ int main(void)
 		
 		_delay_ms(5000);
 		
-		cli();
+		//cli();
 			
  		}
 		 

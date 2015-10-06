@@ -15,6 +15,31 @@ TcfTransactionLog.csv
 #*.atsln
 #*.cproj
 
+
+#############
+## Doxygen
+#############
+
+/Makefile
+/Makefile.in
+/html
+/latex
+/xml
+/man
+/Doxyfile
+/.la
+/.lo
+/.deps
+/.libs
+/*.la
+/*.lo
+
+
+#############
+## Visual Studio
+#############
+
+
 Thumbs.db
 *.obj
 *.exe

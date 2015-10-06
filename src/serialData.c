@@ -25,7 +25,6 @@ BOOL formatProtocol(BYTE id, BYTE dataLow[8], BYTE dataHigh[8])
 	memcpy(trameData.dataLow, dataLow, sizeof(BYTE));
 	memcpy(trameData.dataHigh, dataHigh, sizeof(BYTE));
 	
-	
 	//trameData.cs = mean(dataLow+dataHigh);
 	trameData.eb = END_BYTE;
 	
@@ -70,7 +69,7 @@ void checksumCalculation(BYTE *data)
 the checksum is generated like
 temp = SYNC + DEST + SOURCE + DATA1 + DATA0;
 CHKSUM = 0 - TEMP;
-now when you recive the data only have to check
-if the sum of all the resived data is 0.
+now when you receive the data only have to check
+if the sum of all the recieved data is 0.
 
 ***/

@@ -1,31 +1,68 @@
 \hypertarget{structserial_protocol}{}\section{serial\+Protocol Struct Reference}
 \label{structserial_protocol}\index{serial\+Protocol@{serial\+Protocol}}
+
+
+use following protocol \+: S\+B$\vert$\+I\+D$\vert$\+D0...D15$\vert$\+C\+S$\vert$\+C\+N$\vert$\+E\+B  
+
+
+
+
+{\ttfamily \#include $<$serial\+Data.\+h$>$}
+
+Inheritance diagram for serial\+Protocol\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{structserial_protocol}
+\end{center}
+\end{figure}
 \subsection*{Public Attributes}
 \begin{DoxyCompactItemize}
 \item 
-\hypertarget{structserial_protocol_af8bbcf22377b98dadf690666f9d48156}{}B\+Y\+T\+E {\bfseries sb}\label{structserial_protocol_af8bbcf22377b98dadf690666f9d48156}
-
+B\+Y\+T\+E \hyperlink{structserial_protocol_af8bbcf22377b98dadf690666f9d48156}{sb}
 \item 
-\hypertarget{structserial_protocol_a76964847a69881951e9da1317cc17571}{}B\+Y\+T\+E {\bfseries id}\label{structserial_protocol_a76964847a69881951e9da1317cc17571}
-
+B\+Y\+T\+E \hyperlink{structserial_protocol_a76964847a69881951e9da1317cc17571}{id}
 \item 
-\hypertarget{structserial_protocol_a3e40b60e8c92091fb59e00ee05a07eb1}{}B\+Y\+T\+E {\bfseries data\+Low} \mbox{[}8\mbox{]}\label{structserial_protocol_a3e40b60e8c92091fb59e00ee05a07eb1}
-
+B\+Y\+T\+E \hyperlink{structserial_protocol_a3e40b60e8c92091fb59e00ee05a07eb1}{data\+Low} \mbox{[}8\mbox{]}
 \item 
-\hypertarget{structserial_protocol_a4f9b454d8730babf5397c1f1d582e727}{}B\+Y\+T\+E {\bfseries data\+High} \mbox{[}8\mbox{]}\label{structserial_protocol_a4f9b454d8730babf5397c1f1d582e727}
-
+B\+Y\+T\+E \hyperlink{structserial_protocol_a4f9b454d8730babf5397c1f1d582e727}{data\+High} \mbox{[}8\mbox{]}
 \item 
-\hypertarget{structserial_protocol_aeafe645e9ba8983649aac07b5c85f1a2}{}B\+Y\+T\+E {\bfseries cs}\label{structserial_protocol_aeafe645e9ba8983649aac07b5c85f1a2}
-
+B\+Y\+T\+E \hyperlink{structserial_protocol_aeafe645e9ba8983649aac07b5c85f1a2}{cs}
 \item 
-\hypertarget{structserial_protocol_a75f22d859a2edf76df2fc96f8dd4b901}{}B\+Y\+T\+E {\bfseries cn}\label{structserial_protocol_a75f22d859a2edf76df2fc96f8dd4b901}
-
+B\+Y\+T\+E \hyperlink{structserial_protocol_a75f22d859a2edf76df2fc96f8dd4b901}{cn}
 \item 
-\hypertarget{structserial_protocol_af8e01f5811bdc9a2906aceed9ae19f0f}{}B\+Y\+T\+E {\bfseries eb}\label{structserial_protocol_af8e01f5811bdc9a2906aceed9ae19f0f}
-
+B\+Y\+T\+E \hyperlink{structserial_protocol_af8e01f5811bdc9a2906aceed9ae19f0f}{eb}
 \end{DoxyCompactItemize}
 
 
+\subsection{Detailed Description}
+use following protocol \+: S\+B$\vert$\+I\+D$\vert$\+D0...D15$\vert$\+C\+S$\vert$\+C\+N$\vert$\+E\+B 
+
+\hyperlink{structserial_protocol}{serial\+Protocol} class. , id, data\+Low, data\+High, cs, cn, eb 
+
+\subsection{Member Data Documentation}
+\hypertarget{structserial_protocol_a75f22d859a2edf76df2fc96f8dd4b901}{}\index{serial\+Protocol@{serial\+Protocol}!cn@{cn}}
+\index{cn@{cn}!serial\+Protocol@{serial\+Protocol}}
+\subsubsection[{cn}]{\setlength{\rightskip}{0pt plus 5cm}B\+Y\+T\+E serial\+Protocol\+::cn}\label{structserial_protocol_a75f22d859a2edf76df2fc96f8dd4b901}
+data counter, facultative ?? \hypertarget{structserial_protocol_aeafe645e9ba8983649aac07b5c85f1a2}{}\index{serial\+Protocol@{serial\+Protocol}!cs@{cs}}
+\index{cs@{cs}!serial\+Protocol@{serial\+Protocol}}
+\subsubsection[{cs}]{\setlength{\rightskip}{0pt plus 5cm}B\+Y\+T\+E serial\+Protocol\+::cs}\label{structserial_protocol_aeafe645e9ba8983649aac07b5c85f1a2}
+Cheksum of data, maybe the mean of the 16 byte data ??? or C\+R\+C \hypertarget{structserial_protocol_a4f9b454d8730babf5397c1f1d582e727}{}\index{serial\+Protocol@{serial\+Protocol}!data\+High@{data\+High}}
+\index{data\+High@{data\+High}!serial\+Protocol@{serial\+Protocol}}
+\subsubsection[{data\+High}]{\setlength{\rightskip}{0pt plus 5cm}B\+Y\+T\+E serial\+Protocol\+::data\+High\mbox{[}8\mbox{]}}\label{structserial_protocol_a4f9b454d8730babf5397c1f1d582e727}
+High part of the data \hypertarget{structserial_protocol_a3e40b60e8c92091fb59e00ee05a07eb1}{}\index{serial\+Protocol@{serial\+Protocol}!data\+Low@{data\+Low}}
+\index{data\+Low@{data\+Low}!serial\+Protocol@{serial\+Protocol}}
+\subsubsection[{data\+Low}]{\setlength{\rightskip}{0pt plus 5cm}B\+Y\+T\+E serial\+Protocol\+::data\+Low\mbox{[}8\mbox{]}}\label{structserial_protocol_a3e40b60e8c92091fb59e00ee05a07eb1}
+Low part of the data -\/$>$ M\+S\+B first transmission (most significant bit) -\/$>$ transmission end when transmitting L\+S\+B bit \hypertarget{structserial_protocol_af8e01f5811bdc9a2906aceed9ae19f0f}{}\index{serial\+Protocol@{serial\+Protocol}!eb@{eb}}
+\index{eb@{eb}!serial\+Protocol@{serial\+Protocol}}
+\subsubsection[{eb}]{\setlength{\rightskip}{0pt plus 5cm}B\+Y\+T\+E serial\+Protocol\+::eb}\label{structserial_protocol_af8e01f5811bdc9a2906aceed9ae19f0f}
+End byte \hypertarget{structserial_protocol_a76964847a69881951e9da1317cc17571}{}\index{serial\+Protocol@{serial\+Protocol}!id@{id}}
+\index{id@{id}!serial\+Protocol@{serial\+Protocol}}
+\subsubsection[{id}]{\setlength{\rightskip}{0pt plus 5cm}B\+Y\+T\+E serial\+Protocol\+::id}\label{structserial_protocol_a76964847a69881951e9da1317cc17571}
+Identification byte \hypertarget{structserial_protocol_af8bbcf22377b98dadf690666f9d48156}{}\index{serial\+Protocol@{serial\+Protocol}!sb@{sb}}
+\index{sb@{sb}!serial\+Protocol@{serial\+Protocol}}
+\subsubsection[{sb}]{\setlength{\rightskip}{0pt plus 5cm}B\+Y\+T\+E serial\+Protocol\+::sb}\label{structserial_protocol_af8bbcf22377b98dadf690666f9d48156}
+Start byte 
+
 The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
 \item 
-D\+:/\+Documents/b.\+christol/\+Google Drive/\+Cour/\+Salford/assignement/assignement1\+\_\+atmega/lib/serial\+Data.\+h\end{DoxyCompactItemize}
+lib/serial\+Data.\+h\end{DoxyCompactItemize}

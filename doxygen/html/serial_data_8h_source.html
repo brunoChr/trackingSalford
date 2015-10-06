@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.10"/>
-<title>tracking: D:/Documents/b.christol/Google Drive/Cour/Salford/assignement/assignement1_atmega/lib/serialData.h Source File</title>
+<title>tracking: lib/serialData.h Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -61,6 +61,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div id="navrow2" class="tabs2">
     <ul class="tablist">
       <li><a href="files.html"><span>File&#160;List</span></a></li>
+      <li><a href="globals.html"><span>File&#160;Members</span></a></li>
     </ul>
   </div>
 <!-- window showing the filter options -->
@@ -79,7 +80,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="dir_63a46bc882553fb0fda9819bea5fa400.html">Documents</a></li><li class="navelem"><a class="el" href="dir_66700ac85494ca1223196ecf354207d0.html">b.christol</a></li><li class="navelem"><a class="el" href="dir_89b5f530f8a6f1827f8775875f2007b4.html">Google Drive</a></li><li class="navelem"><a class="el" href="dir_853c75c51dbcc7734a146a6cd99e10f1.html">Cour</a></li><li class="navelem"><a class="el" href="dir_d305eabc0ba95530b56bb67e09557dfe.html">Salford</a></li><li class="navelem"><a class="el" href="dir_e45f065fef1b0be7e7617a641178c5a5.html">assignement</a></li><li class="navelem"><a class="el" href="dir_ae063c4a1ae5307f2a84bf67b081e7a5.html">assignement1_atmega</a></li><li class="navelem"><a class="el" href="dir_ee06e0efd5aa6367da28cdb6c602dda5.html">lib</a></li>  </ul>
+<li class="navelem"><a class="el" href="dir_97aefd0d527b934f1d99a682da8fe6a9.html">lib</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
@@ -119,24 +120,31 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;</div>
 <div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;</div>
 <div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;<span class="comment">/*** TYPEDEF DEFINITION ***/</span></div>
-<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;</div>
-<div class="line"><a name="l00034"></a><span class="lineno"><a class="line" href="structserial_protocol.html">   34</a></span>&#160;<span class="keyword">typedef</span> <span class="keyword">struct </span><a class="code" href="structserial_protocol.html">serialProtocol</a></div>
-<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;{</div>
-<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;    BYTE sb;    <span class="comment">// Start byte</span></div>
-<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;    BYTE id;    <span class="comment">// Identification byte</span></div>
-<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;    BYTE dataLow[8];    <span class="comment">// Low part of the data -&gt; MSB first transmission (most significant bit) -&gt; transmission end when transmitting LSB bit</span></div>
-<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;    BYTE dataHigh[8];   <span class="comment">// High part of the data</span></div>
-<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;    BYTE cs;            <span class="comment">// Cheksum of data, maybe the mean of the 16 byte data ??? or CRC</span></div>
-<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;    BYTE cn;            <span class="comment">// data counter, facultative ??</span></div>
-<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;    BYTE eb;            <span class="comment">// End byte </span></div>
-<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;    </div>
-<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;} <a class="code" href="structserial_protocol.html">serialProtocol</a>;</div>
-<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;</div>
-<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;</div>
-<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;</div>
-<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;</div>
-<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;<span class="preprocessor">#endif </span><span class="comment">/* SERIALDATA_H_ */</span><span class="preprocessor"></span></div>
-<div class="ttc" id="structserial_protocol_html"><div class="ttname"><a href="structserial_protocol.html">serialProtocol</a></div><div class="ttdef"><b>Definition:</b> serialData.h:34</div></div>
+<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;    </div>
+<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;</div>
+<div class="line"><a name="l00040"></a><span class="lineno"><a class="line" href="structserial_protocol.html">   40</a></span>&#160;<span class="keyword">typedef</span> <span class="keyword">struct </span><a class="code" href="structserial_protocol.html">serialProtocol</a></div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;{</div>
+<div class="line"><a name="l00042"></a><span class="lineno"><a class="line" href="structserial_protocol.html#af8bbcf22377b98dadf690666f9d48156">   42</a></span>&#160;    BYTE <a class="code" href="structserial_protocol.html#af8bbcf22377b98dadf690666f9d48156">sb</a>;            </div>
+<div class="line"><a name="l00043"></a><span class="lineno"><a class="line" href="structserial_protocol.html#a76964847a69881951e9da1317cc17571">   43</a></span>&#160;    BYTE <a class="code" href="structserial_protocol.html#a76964847a69881951e9da1317cc17571">id</a>;            </div>
+<div class="line"><a name="l00044"></a><span class="lineno"><a class="line" href="structserial_protocol.html#a3e40b60e8c92091fb59e00ee05a07eb1">   44</a></span>&#160;    BYTE <a class="code" href="structserial_protocol.html#a3e40b60e8c92091fb59e00ee05a07eb1">dataLow</a>[8];    </div>
+<div class="line"><a name="l00045"></a><span class="lineno"><a class="line" href="structserial_protocol.html#a4f9b454d8730babf5397c1f1d582e727">   45</a></span>&#160;    BYTE <a class="code" href="structserial_protocol.html#a4f9b454d8730babf5397c1f1d582e727">dataHigh</a>[8];   </div>
+<div class="line"><a name="l00046"></a><span class="lineno"><a class="line" href="structserial_protocol.html#aeafe645e9ba8983649aac07b5c85f1a2">   46</a></span>&#160;    BYTE <a class="code" href="structserial_protocol.html#aeafe645e9ba8983649aac07b5c85f1a2">cs</a>;            </div>
+<div class="line"><a name="l00047"></a><span class="lineno"><a class="line" href="structserial_protocol.html#a75f22d859a2edf76df2fc96f8dd4b901">   47</a></span>&#160;    BYTE <a class="code" href="structserial_protocol.html#a75f22d859a2edf76df2fc96f8dd4b901">cn</a>;            </div>
+<div class="line"><a name="l00048"></a><span class="lineno"><a class="line" href="structserial_protocol.html#af8e01f5811bdc9a2906aceed9ae19f0f">   48</a></span>&#160;    BYTE <a class="code" href="structserial_protocol.html#af8e01f5811bdc9a2906aceed9ae19f0f">eb</a>;            </div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;} <a class="code" href="structserial_protocol.html">serialProtocol</a>;</div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;</div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;</div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;</div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;</div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;<span class="preprocessor">#endif </span><span class="comment">/* SERIALDATA_H_ */</span><span class="preprocessor"></span></div>
+<div class="ttc" id="structserial_protocol_html_a75f22d859a2edf76df2fc96f8dd4b901"><div class="ttname"><a href="structserial_protocol.html#a75f22d859a2edf76df2fc96f8dd4b901">serialProtocol::cn</a></div><div class="ttdeci">BYTE cn</div><div class="ttdef"><b>Definition:</b> serialData.h:47</div></div>
+<div class="ttc" id="structserial_protocol_html_aeafe645e9ba8983649aac07b5c85f1a2"><div class="ttname"><a href="structserial_protocol.html#aeafe645e9ba8983649aac07b5c85f1a2">serialProtocol::cs</a></div><div class="ttdeci">BYTE cs</div><div class="ttdef"><b>Definition:</b> serialData.h:46</div></div>
+<div class="ttc" id="structserial_protocol_html_a76964847a69881951e9da1317cc17571"><div class="ttname"><a href="structserial_protocol.html#a76964847a69881951e9da1317cc17571">serialProtocol::id</a></div><div class="ttdeci">BYTE id</div><div class="ttdef"><b>Definition:</b> serialData.h:43</div></div>
+<div class="ttc" id="structserial_protocol_html_af8e01f5811bdc9a2906aceed9ae19f0f"><div class="ttname"><a href="structserial_protocol.html#af8e01f5811bdc9a2906aceed9ae19f0f">serialProtocol::eb</a></div><div class="ttdeci">BYTE eb</div><div class="ttdef"><b>Definition:</b> serialData.h:48</div></div>
+<div class="ttc" id="structserial_protocol_html"><div class="ttname"><a href="structserial_protocol.html">serialProtocol</a></div><div class="ttdoc">use following protocol : SB|ID|D0...D15|CS|CN|EB </div><div class="ttdef"><b>Definition:</b> serialData.h:40</div></div>
+<div class="ttc" id="structserial_protocol_html_a3e40b60e8c92091fb59e00ee05a07eb1"><div class="ttname"><a href="structserial_protocol.html#a3e40b60e8c92091fb59e00ee05a07eb1">serialProtocol::dataLow</a></div><div class="ttdeci">BYTE dataLow[8]</div><div class="ttdef"><b>Definition:</b> serialData.h:44</div></div>
+<div class="ttc" id="structserial_protocol_html_a4f9b454d8730babf5397c1f1d582e727"><div class="ttname"><a href="structserial_protocol.html#a4f9b454d8730babf5397c1f1d582e727">serialProtocol::dataHigh</a></div><div class="ttdeci">BYTE dataHigh[8]</div><div class="ttdef"><b>Definition:</b> serialData.h:45</div></div>
+<div class="ttc" id="structserial_protocol_html_af8bbcf22377b98dadf690666f9d48156"><div class="ttname"><a href="structserial_protocol.html#af8bbcf22377b98dadf690666f9d48156">serialProtocol::sb</a></div><div class="ttdeci">BYTE sb</div><div class="ttdef"><b>Definition:</b> serialData.h:42</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

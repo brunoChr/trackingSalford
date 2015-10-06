@@ -30,16 +30,22 @@ BOOL formatProtocol(BYTE id, BYTE dataLow[8], BYTE dataHigh[8]);
 
 
 /*** TYPEDEF DEFINITION ***/
+	
 
+/*!
+ * serialProtocol class.
+ * \extends sb, id, dataLow, dataHigh, cs, cn, eb 
+ * \brief use following protocol : SB|ID|D0...D15|CS|CN|EB
+ */ 
 typedef struct serialProtocol
 {
-	BYTE sb;	// Start byte
-	BYTE id;	// Identification byte
-	BYTE dataLow[8];	// Low part of the data -> MSB first transmission (most significant bit) -> transmission end when transmitting LSB bit
-	BYTE dataHigh[8];	// High part of the data
-	BYTE cs;			// Cheksum of data, maybe the mean of the 16 byte data ??? or CRC
-	BYTE cn;			// data counter, facultative ??
-	BYTE eb;			// End byte	
+	BYTE sb;			/*!< Start byte */ 
+	BYTE id;			/*!< Identification byte */
+	BYTE dataLow[8];	/*!< Low part of the data -> MSB first transmission (most significant bit) -> transmission end when transmitting LSB bit */
+	BYTE dataHigh[8];	/*!< High part of the data */
+	BYTE cs;			/*!< Cheksum of data, maybe the mean of the 16 byte data ??? or CRC */
+	BYTE cn;			/*!< data counter, facultative ?? */
+	BYTE eb;			/*!< End byte */
 	
 } serialProtocol;
 

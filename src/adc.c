@@ -42,6 +42,7 @@ uint16_t adc_read(uint8_t ch)
 	// wait for conversion to complete
 	// ADSC becomes ’0? again
 	// till then, run loop continuously
+	//TODO : maybe use interrupt ????
 	while(ADCSRA & (1<<ADSC));
 	
 	return (ADC);

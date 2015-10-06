@@ -4,8 +4,8 @@
   <ProjectName>tracking</ProjectName>
   <DoxyExePath>D:\Program Files\doxygen\bin\doxygen.exe</DoxyExePath>
   <UseDefaultSettings>true</UseDefaultSettings>
-  <GenerateAsPartOfBuild>false</GenerateAsPartOfBuild>
+  <GenerateAsPartOfBuild>true</GenerateAsPartOfBuild>
   <ConfigFilePath>D:\Documents\b.christol\Google Drive\Cour\Salford\assignement\assignement1_atmega\doxyfile</ConfigFilePath>
   <OutputDirPath>D:\Documents\b.christol\Google Drive\Cour\Salford\assignement\assignement1_atmega\doxygen</OutputDirPath>
-  <ShowErrorsAndWarnings>false</ShowErrorsAndWarnings>
+  <ShowErrorsAndWarnings>true</ShowErrorsAndWarnings>
 </DoxySettings>
