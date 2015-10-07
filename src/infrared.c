@@ -1,5 +1,5 @@
 /*
- * infrared.c
+ * \file infrared.c
  *
  * Created: 03/10/2015 11:43:23
  *  Author: b.christol

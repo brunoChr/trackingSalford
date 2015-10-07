@@ -1,4 +1,5 @@
 #include "../lib/thermal.h"
+#include "../lib/uart.h"
 
 BOOL thermal_read(BYTE address, BYTE *data)
 {
@@ -28,7 +29,7 @@ unsigned char calc_crc( unsigned char data )
 		temp = data;
 		data <<= 1;
 		if(temp & 0x80) data ^= 0x07;
-		printf(data);
+		//printf(data);
 	}
 	return data;
 }

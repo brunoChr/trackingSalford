@@ -1,6 +1,6 @@
 /**
  * Created by Manfred Langemann, Peter Fleury, Theo Theodoridis.
- * File     : twi.c
+ * \file     : twi.c
  * Version  : v1.0
  * Date     : © Copyright 04-01-2008
  * User     : ttheod

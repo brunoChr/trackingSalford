@@ -9,4 +9,5 @@ typedef int				INT;	// Range: {-32,768, 32,767}, 2 bytes.
 typedef long			LONG;	// Range: {-2,147,483,648, 2,147,483,647}, 4 bytes.
 typedef float			FLOAT;	// Range: {1.0E-38, 1.0E+38}, 4 bytes.
 
+
 #endif

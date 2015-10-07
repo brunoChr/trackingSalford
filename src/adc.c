@@ -1,5 +1,5 @@
 /*
- * adc.c
+ * \file adc.c
  *
  * Created: 03/10/2015 10:22:35
  *  Author: b.christol

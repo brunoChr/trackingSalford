@@ -5,6 +5,7 @@
 
 #include "../lib/cpu.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <avr/io.h>
 #include <util/delay.h>
 #include <avr/interrupt.h>
@@ -19,7 +20,7 @@
 #include "../lib/adc.h"
 #include "../lib/pwm.h"
 #include "../lib/infrared.h"
-
+#include "../lib/serialData.h"
 
 #define TAILLE_DATA 4*4
 #define ADC_CH_IR_RIGHT	0
@@ -27,6 +28,7 @@
 
 //Globalvar.
 BYTE thermal_data[THERMAL_BUFF_SIZE];
+BYTE* randomByteArray();
 
 void setup(void)
 {
@@ -54,31 +56,28 @@ void setup(void)
  */
 int main(void)
 {
-	BYTE randData;
-	BYTE *thermalData;
-	BYTE index;
+	//BYTE *thermalData;
 	uint16_t adcResultCh0, adcResultCh1;
 	int8_t  distanceIRrLeft, distanceIrRight;
-	
+	BYTE *dataSerial;
 	
 	/*** VARIABLE INITIALISATION ***/
-	randData = 0;
-	index = 0;
 	adcResultCh0 = 0;
 	adcResultCh1 = 0;
 	distanceIrRight = 0;
 	distanceIRrLeft = 0;
 	
-	_delay_ms(1000);
+	//_delay_ms(1000);
 		
 	/*** SETUP SYSTEM ***/
 	setup();
 	
-	printf("\n~ Board Ready ~\n");
+	//printf("\n~ Board Ready ~\n");
 	
 	/*** WAITING ***/
-	_delay_ms(1000);
+	//_delay_ms(1000);
 
+	formatProtocol(IR_R_SENSOR, randomByteArray());
 
 	/*** INFINITE LOOP ***/
 	while(1)
@@ -117,7 +116,7 @@ int main(void)
 		/*** TEST PWM SERVO ***/
 		pwm_positionCentrale();
 		
-		_delay_ms(5000);
+		//_delay_ms(5000);
 		
 		//cli();
 			
@@ -128,6 +127,7 @@ int main(void)
 }
 
 
+
 ISR(TIMER1_OVF_vect)
 {
 	/*
@@ -136,4 +136,31 @@ ISR(TIMER1_OVF_vect)
 	*/
 	
 	PORTB |= (1 <<PORTB5);
+}
+
+ISR(TIMER1_COMPA_vect)
+{
+	/*
+	* Routine d'interruption activee lors du compare match
+	* entre ocr1 (temps à l'état haut) et timer1
+	*/
+	PORTB|= (0 << PORTB5);
+}
+
+
+BYTE* randomByteArray()
+{
+	int size = 8;
+	int i;
+	BYTE array[size];
+	BYTE *aPtr = malloc(sizeof(BYTE) * size);
+	
+	srand(1);
+	
+	for (i = 0; i < size; i++)
+	{
+		aPtr[i] = (rand() % 101) + 500;
+	}
+	
+	return *aPtr;
 }

@@ -1,5 +1,5 @@
 /*
- * serialData.c
+ * \file serialData.c
  *
  * Created: 05/10/2015 10:34:25
  *  Author: b.christol
@@ -12,54 +12,114 @@
 
 */
 
-BOOL formatProtocol(BYTE id, BYTE dataLow[8], BYTE dataHigh[8])
+/*! \fn BOOL formatProtocol(BYTE id, BYTE dataLow[8], BYTE dataHigh[8])
+ *  \brief format data to be send by serial
+ *  \param 
+ *  \param 
+ *  \exception 
+ *  \return a character pointer.
+ */
+serialProtocol formatProtocol(BYTE id, BYTE data[NBR_DATA])
 {
 	/*** SERIAL PROTOCOL FORMAT ***/
 	/*** SB/ID/D0...D15/CS/..CN../EB ***/
-		
+	
 	serialProtocol trameData;		// Implement a struct data of type serialProtocol -> see serialData.h
 	
 	trameData.sb = START_BYTE;
 	trameData.id = id;
 	
-	memcpy(trameData.dataLow, dataLow, sizeof(BYTE));
-	memcpy(trameData.dataHigh, dataHigh, sizeof(BYTE));
+	memcpy(trameData.data, data, NBR_DATA);
+	//memcpy(trameData.dataHigh, dataHigh, sizeof(BYTE));
 	
-	//trameData.cs = mean(dataLow+dataHigh);
+	trameData.cs = computeCrc(data, NBR_DATA, 0x04);
 	trameData.eb = END_BYTE;
 	
-	return 0;
+	return (trameData);
 }
 
 
-void checksumCalculation(BYTE *data)
+/*! \fn BYTE checksumCalculation16bits(BYTE *data)
+ *  \brief compute checksum of data
+ *  \param data : pointer on begin of data for calculation of checksum
+ *  \param 
+ *  \exception 
+ *  \return checksum
+ */
+BYTE checksumCalculation(BYTE *data, BYTE size)
 {
-	int array[8];
+	//int array[8];
 	int i, num, negative_sum = 0, positive_sum = 0;
 	float total = 0.0, average;
 	
-	num = 16;
+	num = sizeof(BYTE)*size;
 	
 	/*  Summation starts */
 	for (i = 0; i < num; i++)
 	{
-		if (array[i] < 0)
+		if (data[i] < 0)
 		{
-			negative_sum = negative_sum + array[i];
+			negative_sum = negative_sum + data[i];
 		}
-		else if (array[i] > 0)
+		else if (data[i] > 0)
 		{
-			positive_sum = positive_sum + array[i];
+			positive_sum = positive_sum + data[i];
 		}
-		else if (array[i] == 0)
+		else if (data[i] == 0)
 		{
 			;
 		}
-		total = total + array[i] ;
+		total = total + data[i] ;
 	}
 	
-	average = total / num;
+	average = (total / num);
 	
+	return average;
+}
+
+
+typedef enum
+{
+	CHECKSUM_ERROR = 0X04
+} etError;
+
+//CRC
+#define POLYNOMIAL 0x31 //P(x)=x^8+x^5+x^4+1 = 100110001
+
+//============================================================
+BYTE computeCrc(BYTE *data, BYTE nbrOfBytes, BYTE checksum)
+//============================================================
+//calculates checksum for n bytes of data
+//and compares it with expected checksum
+//input: data[] checksum is built based on this data
+// nbrOfBytes checksum is built for n bytes of data
+// checksum expected checksum
+//return: error: CHECKSUM_ERROR = checksum does not match
+// 0 = checksum matches
+//============================================================
+{
+	BYTE crc = 0;
+	BYTE byteCtr;
+	BYTE bit;
+
+	//calculates 8-Bit checksum with given polynomial
+	for (byteCtr = 0; byteCtr < nbrOfBytes; ++byteCtr)
+	{
+		/* Initially, the dividend is the remainder */
+		crc ^= (data[byteCtr]);
+		
+		/*  For each bit position in the message */
+		for (bit = 8; bit > 0; --bit)
+		{
+			if (crc & 0x80)/* If the uppermost bit is a 1... */
+			crc = (crc << 1) ^ POLYNOMIAL;
+			else crc = (crc << 1);
+		}
+	}
+	
+	if (crc != checksum)
+	return CHECKSUM_ERROR;
+	else return 0;
 }
 
 
