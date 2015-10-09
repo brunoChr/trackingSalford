@@ -1,8 +1,12 @@
 #include "../lib/thermal.h"
 #include "../lib/uart.h"
 
+//extern BYTE thermal_Buff[THERMAL_BUFF_SIZE];
+extern BYTE tPTAT;
+extern BYTE tP[THERMAL_TP_SIZE];
+extern BYTE tPEC;
 
-	
+
 BOOL thermal_read(BYTE address, BYTE *data)
 {
 	int check = 0;
@@ -35,6 +39,7 @@ unsigned char calc_crc( unsigned char data )
 	}
 	return data;
 }
+
 int D6T_checkPEC( BYTE *buf, int pPEC )
 {
 	unsigned char crc;
@@ -49,18 +54,15 @@ int D6T_checkPEC( BYTE *buf, int pPEC )
 }
 
 
-BYTE* mesure_thermal(BYTE *thermal_Buff, BYTE size)
-{
-	static BYTE tPTAT;
-	static BYTE tP[THERMAL_TP_SIZE];
-	static BYTE tPEC;
-
-	if(!D6T_checkPEC(thermal_Buff, size)){
-		return -1; // e r r o r
-	}
-	
+BYTE mesure_thermal(BYTE *thermal_Buff, BYTE size)
+{	
 	thermal_read(THERMAL_ADD, thermal_Buff);
 	
+	if(!D6T_checkPEC(thermal_Buff, size))
+	{
+		return -1; // e r r o r
+	}
+		
 	tPTAT=256*thermal_Buff[1]+thermal_Buff[0];
 	
 	tP[0]=256*thermal_Buff[3]+thermal_Buff[2];
@@ -82,6 +84,7 @@ BYTE* mesure_thermal(BYTE *thermal_Buff, BYTE size)
 	
 	tPEC=thermal_Buff[34];
 	
+	//printf("TP : %d", tP);
 	//uart_putchar(tPTAT);
 	
 	//for(int i=0;i<16;i++)
@@ -94,5 +97,5 @@ BYTE* mesure_thermal(BYTE *thermal_Buff, BYTE size)
 	
 	//uart_putchar(tPEC);
 	
-	return thermal_Buff;
+	return 0;
 }

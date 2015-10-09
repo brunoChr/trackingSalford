@@ -21,6 +21,7 @@
 #include <avr/interrupt.h>
 #include <util/atomic.h>
 
+
 #include "../lib/twi.h"
 #include "../lib/port.h"
 #include "../lib/uart.h"
@@ -42,9 +43,11 @@
 //Globalvar
 
 BYTE thermal_Buff[THERMAL_BUFF_SIZE];
-BYTE thermal_Data[THERMAL_BUFF_SIZE];
+BYTE tPTAT;
+BYTE tP[THERMAL_TP_SIZE];
+BYTE tPEC;
 
-BYTE* randomByteArray();
+BYTE * getRandom();
 
 
 void setup(void)
@@ -80,7 +83,6 @@ int main(void)
 	serialProtocol Frame;
 	BYTE index;
 	SHORT pos;
-	BYTE *tP;
 	
 	/*** VARIABLE INITIALISATION ***/
 	adcResultCh0 = 0;
@@ -107,30 +109,37 @@ int main(void)
 	while(1)
 	{	
 
-		/*** TEST THERMAL SENSOR ***/
-		thermal_Data = mesure_thermal(thermal_Buff, THERMAL_BUFF_SIZE-1);
-		
 		ATOMIC_BLOCK(ATOMIC_FORCEON)
 		{
-					
-		for (index = 0 ; index < 16 ; index++)
+			
+		/*** TEST THERMAL SENSOR ***/
+		if(mesure_thermal(thermal_Buff, THERMAL_BUFF_SIZE - 1) == 0)
 		{
-			printf(" %d", *(thermal_Data + index));
-		}
+			
+			for (index = 0 ; index < THERMAL_TP_SIZE-1 ; index++)
+			{
+				printf(" %d", *(tP + index));
+			}
 					
-		printf("\r\n");
+			printf("\r\n");
 		
-		/*** TEST ADC CHANNEL 0 ***/
-		adcResultCh0 = adc_read(ADC_CH_IR_RIGHT);
+		}
 		
-		/*** TEST IR SENSOR ***/
-		distanceIrRight = sharp_IR_interpret_GP2Y0A02YK(adcResultCh0);
+		else{
+			printf("\r\n thermal error ...");
+		}
 		
-		/*** TEST ADC CHANNEL 1 ***/
-		adcResultCh1 = adc_read(ADC_CH_IR_LEFT);
-				
-		/*** TEST IR SENSOR ***/
-		distanceIRrLeft = sharp_IR_interpret_GP2Y0A02YK(adcResultCh1);
+		///*** TEST ADC CHANNEL 0 ***/
+		//adcResultCh0 = adc_read(ADC_CH_IR_RIGHT);
+		//
+		///*** TEST IR SENSOR ***/
+		//distanceIrRight = sharp_IR_interpret_GP2Y0A02YK(adcResultCh0);
+		//
+		///*** TEST ADC CHANNEL 1 ***/
+		//adcResultCh1 = adc_read(ADC_CH_IR_LEFT);
+				//
+		///*** TEST IR SENSOR ***/
+		//distanceIRrLeft = sharp_IR_interpret_GP2Y0A02YK(adcResultCh1);
 		
 		}
 		
@@ -143,18 +152,18 @@ int main(void)
 		//uart_putchar(distanceIRrLeft);
 	
 		/*** TEST FORMAT PROTOCOL ***/
-		//Frame = formatProtocol(IR_R_SENSOR, adcResultCh1, NBR_DATA);
+		//Frame = formatProtocol(IR_R_SENSOR, tP, NBR_DATA);
 		//
 		//printf("\r\n%d %d ", Frame.sb, Frame.id);
 		//
 		//for (index = 0; index < NBR_DATA; index++)
 		//{
-			//printf("%d", &Frame.data[index]);
+			//printf("%d", Frame.data[index]);
 		//}
 		//
-		//printf(" %d %d %d", Frame.cn, Frame.cs, Frame.eb);
-		//
-		//
+		//printf(" %d %d %d", Frame.cs, Frame.cn, Frame.eb);
+		
+		
 		///*** TEST PWM SERVO ***/
 		
 		//if(pos < 80)
@@ -216,19 +225,19 @@ ISR(TIMER1_COMPA_vect)
 }
 
 
-//BYTE* randomByteArray()
-//{
-	//int size = 8;
-	//int i;
-	//BYTE array[size];
-	//BYTE *aPtr = malloc(sizeof(BYTE) * size);
-	//
-	//srand(1);
-	//
-	//for (i = 0; i < size; i++)
-	//{
-		//aPtr[i] = (rand() % 101) + 500;
-	//}
-	//
-	//return *aPtr;
-//}
+/* function to generate and return random numbers */
+BYTE * getRandom( )
+{
+	static BYTE  r[16];
+	int i;
+
+	/* set the seed */
+	srand(10);
+	for ( i = 0; i < 10; ++i)
+	{
+		r[i] = rand();
+		//printf( "r[%d] = %d\n", i, r[i]);
+	}
+
+	return r;
+}
