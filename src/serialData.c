@@ -32,7 +32,7 @@ serialProtocol formatProtocol(BYTE id, BYTE *data, INT nbrData)
 	memcpy(trameData.data, data, NBR_DATA);
 	//memcpy(trameData.dataHigh, dataHigh, sizeof(BYTE));
 	
-	trameData.cs = computeCrc(data, NBR_DATA, 0x04);
+	trameData.cs = computeCrc(data, NBR_DATA);
 	trameData.eb = END_BYTE;
 	
 	return trameData;
@@ -87,7 +87,7 @@ typedef enum
 #define POLYNOMIAL 0x31 //P(x)=x^8+x^5+x^4+1 = 100110001
 
 //============================================================
-BYTE computeCrc(BYTE *data, BYTE nbrOfBytes, BYTE checksum)
+BYTE computeCrc(BYTE *data, BYTE nbrOfBytes)
 //============================================================
 //calculates checksum for n bytes of data
 //and compares it with expected checksum
@@ -117,9 +117,10 @@ BYTE computeCrc(BYTE *data, BYTE nbrOfBytes, BYTE checksum)
 		}
 	}
 	
-	if (crc != checksum)
-	return CHECKSUM_ERROR;
-	else return 0;
+	return crc;
+	//if (crc != checksum)
+	//return CHECKSUM_ERROR;
+	//else return 0;
 }
 
 

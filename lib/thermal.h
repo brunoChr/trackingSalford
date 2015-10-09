@@ -12,7 +12,7 @@
 
 BOOL thermal_read(BYTE address, BYTE *data);
 int D6T_checkPEC( BYTE *buf, int pPEC );
-BYTE mesure_thermal(BYTE *thermal_Buff, BYTE size);
+BYTE * mesure_thermal(BYTE *thermal_Buff, BYTE size);
 
 
 

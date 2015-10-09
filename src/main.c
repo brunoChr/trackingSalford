@@ -34,39 +34,23 @@
 #include "../lib/serialData.h"
 
 
-#define TAILLE_DATA 4*4
-#define ADC_CH_IR_RIGHT	0
-#define ADC_CH_IR_LEFT	1
+#define TAILLE_DATA 4*4		//!< \Matrix temp sensor
+#define ADC_CH_IR_RIGHT	0	//!< \ADC channel of the right IR sensor
+#define ADC_CH_IR_LEFT	1	//!< \ADC channel of the left IR sensor
 
 #define DEBUG 0
 
-//Globalvar
 
-BYTE thermal_Buff[THERMAL_BUFF_SIZE];
-BYTE tPTAT;
-BYTE tP[THERMAL_TP_SIZE];
-BYTE tPEC;
+/*** Globalvar ***/
 
-BYTE * getRandom();
+BYTE thermal_Buff[THERMAL_BUFF_SIZE];	//!< \Buffer of temp
+BYTE *thermalDataPtr;					//!< \Pointer to the buffer temp
 
 
-void setup(void)
-{
-	/*** INIT ***/
+/*** Prototype function main ***/
 
-	port_init();
-	uart_init(9600);
-	//servo_init();
-	adc_init();
-	pwm_init();
-	//LCD_init();
-	if(!twi_init(100000)) // Init I2C  with 100KHz bitrate.
-	{
-		printf("\nError in initiating I2C interface.");
-		while(1);
-	}
-	/*** END OF INIT PART ***/	
-}
+BYTE * getRandom();		//!< \Return a 16 byte array fill with random number
+void setup(void);		//!< \Init function of the system
 
 
 /*!
@@ -76,7 +60,6 @@ void setup(void)
  */
 int main(void)
 {
-	//BYTE *thermalData;
 	uint16_t adcResultCh0, adcResultCh1;
 	int8_t  distanceIRrLeft, distanceIrRight;
 	BYTE *dataSerial;
@@ -108,39 +91,38 @@ int main(void)
 	/*** INFINITE LOOP ***/
 	while(1)
 	{	
-
+		
 		ATOMIC_BLOCK(ATOMIC_FORCEON)
 		{
+		
+		thermalDataPtr = mesure_thermal(thermal_Buff, THERMAL_BUFF_SIZE - 1) ;
 			
 		/*** TEST THERMAL SENSOR ***/
-		if(mesure_thermal(thermal_Buff, THERMAL_BUFF_SIZE - 1) == 0)
+		if(thermalDataPtr != NULL)
 		{
-			
-			for (index = 0 ; index < THERMAL_TP_SIZE-1 ; index++)
-			{
-				printf(" %d", *(tP + index));
-			}
-					
-			printf("\r\n");
-		
+			//for (index = 0 ; index < THERMAL_TP_SIZE-1 ; index++)
+			//{
+				//printf(" %d", thermalDataPtr[index]);
+			//}		
+			//printf("\r\n");
 		}
 		
-		else{
+		else
+		{
 			printf("\r\n thermal error ...");
 		}
 		
-		///*** TEST ADC CHANNEL 0 ***/
-		//adcResultCh0 = adc_read(ADC_CH_IR_RIGHT);
-		//
-		///*** TEST IR SENSOR ***/
-		//distanceIrRight = sharp_IR_interpret_GP2Y0A02YK(adcResultCh0);
-		//
-		///*** TEST ADC CHANNEL 1 ***/
-		//adcResultCh1 = adc_read(ADC_CH_IR_LEFT);
-				//
-		///*** TEST IR SENSOR ***/
-		//distanceIRrLeft = sharp_IR_interpret_GP2Y0A02YK(adcResultCh1);
+		/*** TEST ADC CHANNEL 0 ***/
+		adcResultCh0 = adc_read(ADC_CH_IR_RIGHT);
 		
+		/*** TEST IR SENSOR ***/
+		distanceIrRight = sharp_IR_interpret_GP2Y0A02YK(adcResultCh0);
+		
+		/*** TEST ADC CHANNEL 1 ***/
+		adcResultCh1 = adc_read(ADC_CH_IR_LEFT);
+				
+		/*** TEST IR SENSOR ***/
+		distanceIRrLeft = sharp_IR_interpret_GP2Y0A02YK(adcResultCh1);
 		}
 		
 		
@@ -152,16 +134,16 @@ int main(void)
 		//uart_putchar(distanceIRrLeft);
 	
 		/*** TEST FORMAT PROTOCOL ***/
-		//Frame = formatProtocol(IR_R_SENSOR, tP, NBR_DATA);
-		//
-		//printf("\r\n%d %d ", Frame.sb, Frame.id);
-		//
-		//for (index = 0; index < NBR_DATA; index++)
-		//{
-			//printf("%d", Frame.data[index]);
-		//}
-		//
-		//printf(" %d %d %d", Frame.cs, Frame.cn, Frame.eb);
+		Frame = formatProtocol(THERMAL_SENSOR, thermalDataPtr, NBR_DATA);
+		
+		printf("\r\n%d%d", Frame.sb, Frame.id);
+		
+		for (index = 0; index < NBR_DATA; index++)
+		{
+			printf("%d", Frame.data[index]);
+		}
+		
+		printf("%d%d%d", Frame.cs, Frame.cn, Frame.eb);
 		
 		
 		///*** TEST PWM SERVO ***/
@@ -240,4 +222,22 @@ BYTE * getRandom( )
 	}
 
 	return r;
+}
+
+void setup(void)
+{
+	/*** INIT ***/
+
+	port_init();
+	uart_init(9600);
+	//servo_init();
+	adc_init();
+	pwm_init();
+	//LCD_init();
+	if(!twi_init(100000)) // Init I2C  with 100KHz bitrate.
+	{
+		printf("\nError in initiating I2C interface.");
+		while(1);
+	}
+	/*** END OF INIT PART ***/
 }

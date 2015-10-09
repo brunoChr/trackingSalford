@@ -2,9 +2,9 @@
 #include "../lib/uart.h"
 
 //extern BYTE thermal_Buff[THERMAL_BUFF_SIZE];
-extern BYTE tPTAT;
-extern BYTE tP[THERMAL_TP_SIZE];
-extern BYTE tPEC;
+//extern BYTE tPTAT;
+//extern BYTE tP[THERMAL_TP_SIZE];
+//extern BYTE tPEC;
 
 
 BOOL thermal_read(BYTE address, BYTE *data)
@@ -54,13 +54,18 @@ int D6T_checkPEC( BYTE *buf, int pPEC )
 }
 
 
-BYTE mesure_thermal(BYTE *thermal_Buff, BYTE size)
+BYTE * mesure_thermal(BYTE *thermal_Buff, BYTE size)
 {	
+	
+	static BYTE tPTAT;
+	static BYTE tP[THERMAL_TP_SIZE];
+	static BYTE tPEC;
+	
 	thermal_read(THERMAL_ADD, thermal_Buff);
 	
 	if(!D6T_checkPEC(thermal_Buff, size))
 	{
-		return -1; // e r r o r
+		return NULL; // e r r o r
 	}
 		
 	tPTAT=256*thermal_Buff[1]+thermal_Buff[0];
@@ -97,5 +102,5 @@ BYTE mesure_thermal(BYTE *thermal_Buff, BYTE size)
 	
 	//uart_putchar(tPEC);
 	
-	return 0;
+	return tP;
 }
