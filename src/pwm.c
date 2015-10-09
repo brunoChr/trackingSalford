@@ -8,15 +8,42 @@
 #include "../lib/pwm.h"
 #include <avr/interrupt.h>
 
-
+unsigned int tableDeCalcul(unsigned int angle)
+{
+	unsigned int angleToValue[181] = 
+		{
+			1000, 1006, 1012, 1018, 1024, 1030, 1036, 1042, 1048, 1054,
+			1060, 1066, 1072, 1078, 1084, 1090, 1096, 1102, 1108,
+			1114, 1120, 1126, 1132, 1138, 1144, 1150, 1156, 1162,
+			1168, 1174, 1180, 1186, 1192, 1198, 1204, 1210, 1216,
+			1222, 1228, 1234, 1240, 1246, 1252, 1258, 1264, 1270,
+			1276, 1282, 1288, 1294, 1300, 1306, 1312, 1318, 1324,
+			1330, 1336, 1342, 1348, 1354, 1360, 1366, 1372, 1378,
+			1384, 1390, 1396, 1402, 1408, 1414, 1420, 1426, 1432,
+			1438, 1444, 1450, 1456, 1462, 1468, 1474, 1480, 1486,
+			1492, 1498, 1504, 1510, 1516, 1522, 1528, 1534, 1540,
+			1546, 1552, 1558, 1564, 1570, 1576, 1582, 1588, 1594,
+			1600, 1606, 1612, 1618, 1624, 1630, 1636, 1642, 1648,
+			1654, 1660, 1666, 1672, 1678, 1684, 1690, 1696, 1702,
+			1708, 1714, 1720, 1726, 1732, 1738, 1744, 1750, 1756,
+			1762, 1768, 1774, 1780, 1786, 1792, 1798, 1804, 1810,
+			1816, 1822, 1828, 1834, 1840, 1846, 1852, 1858, 1864,
+			1870, 1876, 1882, 1888, 1894, 1900, 1906, 1912, 1918,
+			1924, 1930, 1936, 1942, 1948, 1954, 1960, 1966, 1972,
+			1978, 1984, 1990, 1996, 2002, 2008, 2014, 2020, 2026,
+			2032, 2038, 2044, 2050, 2056, 2062, 2068, 2074, 2080
+		};
+		
+	return angleToValue[angle];
+}
 void pwm_activeInterrupt()
 {
 	/*
 	* Activation/Désactivation des interruptions
 	* liées au PWM
 	*/
-	TIMSK |= (1 << OCIE1A);// Interrupt on compare match A enabled
-	TIMSK |= (1 << TOIE1); // Interrupt on timer overflow enable
+	ETIMSK |= (1 << OCIE3A);// Interrupt on compare match A enabled
+	ETIMSK |= (1 << TOIE3); // Interrupt on timer overflow enable
 }
 
 void pwm_init()
@@ -24,35 +51,36 @@ void pwm_init()
 	/*
 	* Initialisation du PWM
 	*/
-	//__enable_interrupt();
+
 	sei(); // Activation des interruptions globales
 	
 	pwm_activeInterrupt();
+	pwm_positionCentrale();
 	
 	/*Utilisation du port B*/
-	DDRB |= (1 << DDB5);// PORTB5 en sortie
-	PORTB |= (1 << PB5); // PORTB5 active High
+	DDRE |= (1 << DDE3);// PORTE3 en sortie
+	PORTE |= (1 << PE3); // PORTE3 active High
 			
 	/*Toggle OC1A on compare match*/
-	TCCR1A |= (1 << COM1A1);
-	TCCR1A |= (0 << COM1A0);
+	TCCR3A |= (1 << COM3A1);
+	TCCR3A |= (0 << COM3A0);
 	
 	/*Fast PWM Mode, 10-bit
-	* Valeur de TOP pour l'overflow = 1023
+	* Valeur de TOP pour l'overflow = 19 999
 	*/
-	TCCR1A |= (1 << WGM10);
-	TCCR1A |= (1 << WGM11);
-	TCCR1B |= (1 << WGM12);
-	TCCR1B |= (0 << WGM13);
 
-	
-	/*Clk (Prescaler : 64)*/
-	TCCR1B |= (1 << CS10);
-	TCCR1B |= (1 << CS11);
-	TCCR1B |= (0 << CS12);
+	ICR3 = 19999;
 
+	TCCR3B |= (1 << WGM33);
+	TCCR3B |= (1 << WGM32);
+	TCCR3A |= (1 << WGM31);
+	TCCR3A |= (0 << WGM30);
 	
-	pwm_positionCentrale();
+	
+	/*Clk (Prescaler : 8)*/
+	TCCR3B |= (0 << CS32);
+	TCCR3B |= (1 << CS31);
+	TCCR3B |= (0 << CS30);
 	
 }
 
@@ -60,148 +88,49 @@ void pwm_init()
 void pwm_rotationGauche(void)
 {
 	/*Reglage du temps haut à 1 ms (position extreme gauche)*/
-	OCR1AH = 0x00;
-	OCR1AL = 0x80;
+
+	OCR3A = ICR3/20; //20ms pour une fréquence de PWM = 50Hz
 }
 
 void pwm_rotationDroite(void)
 {
 	/*Reglage du temps haut à 2 ms (position extreme droite)*/
-	OCR1AH = 0x01;
-	OCR1AL = 0x00;
+	OCR3A = ICR3 * (2/20); //20ms pour une fréquence de PWM = 50Hz
 }
 
 void pwm_positionCentrale(void)
 {
-	OCR1AH = 0x00;
-	OCR1AL = 0xC0;
+	OCR3A = ICR3 * (1.5/20); //20ms pour une fréquence de PWM = 50Hz
 }
 
-void pwm_setPosition(double angle)
+void pwm_setPosition(unsigned int angle)
 {
 	/*
-	 Controle de la rotation en PWM
+	Controle de la rotation en PWM
 
-	Avec un prescaler de 64, la periode est de 8 ms.
-	Le Fast PWM mode est codé sur 10 bits ; on peut donc aller de zero à 1023, en 8 ms.
-	Duree de l'état haut : 
-	- Position extreme gauche = 1ms ; 
-	- Position centrale = 1,5 ms ; 
+	Le TOP Fast PWM mode est codé sur celui du ICR = 19999 ; on peut donc aller de zero à 19999, en 20 ms.
+	Duree de l'état haut :
+	- Position extreme gauche = 1ms ;
+	- Position centrale = 1,5 ms ;
 	- Position extreme droite = 2 ms
-	
-	Si on convertit en nombre de bit, l'extreme gauche à 128 ; la position centrale est à 192 ; l'extreme droite à 256
-	Ces positions correspondent respectivement à -90 , 0 , et +90°
-	Donc, pour parcourir 90°, on compte 64 coups d'horloe (256 - 192, 192 - 128)
-	On convertit nos degrés en nombre de coups d'horloge en divisant 64 par 90, et en multipliant la valeur obtenue
-	par angle que l'on souhaite
-	
-	*/	
-	double degreToBit = 64/90;
-	
+	Pour se placer à un angle donné on doit jouer sur la temps haut (compris entre 1ms et 2ms).
+	Si on veut une résolution de 1 degré on modifie le temps haut par pas de 1/180=0,005 ms.
+	*/
+
 	//Gestion des valeurs dépassant les valeurs extremes
-	if(angle >= 90)
+	if(angle >= 180)
 	{
 		pwm_rotationDroite();
 	}
-	else if (angle <= (-90))
+	else if (angle <= (0))
 	{
 		pwm_rotationGauche();
 	}
-	
 	//Gestion des valeurs comprise dans l'intervalle utile
 	else
 	{
-		int valeur = angle *  degreToBit;
-		
-		if(angle < 0)
-		{
-			
-			OCR1AH = 0x00;
-			OCR1AL = 0xC0 - valeur;
-		}
-		else if (angle > 0)
-		{
-			OCR1AH = 0x00;
-			OCR1AL = 0xC0 + valeur;
-		}
+		OCR3A = tableDeCalcul(angle);
 	}
-	
-	/*
-	//Cas 1 : angle  positif (rotation vers la droite)
-	if (angle >= 0)
-	{
-		if (angle == 0)
-			pwm_positionCentrale();
-		else if(angle > 0 && angle <= 15)
-		{
-			OCR1AH = 0x00;
-			OCR1AL = 0xCA;
-		}
-		else if(angle > 15 && angle <= 30)
-		{
-			OCR1AH = 0x00;
-			OCR1AL = 0xD4;
-		}
-		else if(angle > 30 && angle <= 45)
-		{
-			OCR1AH = 0x00;
-			OCR1AL = 0xDE;
-		}
-		else if(angle > 45 && angle <= 60)
-		{
-			OCR1AH = 0x00;
-			OCR1AL = 0xE8;
-		}
-		else if(angle > 60 && angle <= 75)
-		{
-			OCR1AH = 0x00;
-			OCR1AL = 0xF2;
-		}
-		else if(angle > 75 && angle <= 90)
-		{
-			OCR1AH = 0x00;
-			OCR1AL = 0xFC;
-		}
-		else if(angle > 90)
-			pwm_rotationDroite();
-	}
-	
-	//Cas 2 : angle négatif (rotation vers la gauche)
-	else 
-	{
-		if(angle >= (-15) && angle < 0)
-		{
-			OCR1AH = 0x00;
-			OCR1AL = 0xB6;
-		}
-		else if(angle >= (-30) && angle < (-15))
-		{
-			OCR1AH = 0x00;
-			OCR1AL = 0xAC;
-		}
-		else if(angle >= (-45) && angle < (-30))
-		{
-			OCR1AH = 0x00;
-			OCR1AL = 0xA2;
-		}
-		else if(angle >= (-60) && angle < (-45))
-		{
-			OCR1AH = 0x00;
-			OCR1AL = 0x98;
-		}
-		else if(angle >= (-75) && angle < (-60))
-		{
-			OCR1AH = 0x00;
-			OCR1AL = 0x8E;
-		}
-		else if(angle > (-90) && angle < (-75))
-		{
-			OCR1AH = 0x00;
-			OCR1AL = 0x84;
-		}
-		else if(angle < (-90))
-			pwm_rotationGauche();
-	}
-	*/
+
 }
 

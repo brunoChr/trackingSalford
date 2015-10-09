@@ -22,7 +22,8 @@ void pwm_init();
 void pwm_rotationGauche(void);
 void pwm_rotationDroite(void);
 void pwm_positionCentrale(void);
-void pwm_setPosition(double angle);
+void pwm_setPosition(unsigned int angle);
+unsigned int tableDeCalcul (unsigned int angle);
 
 
 #endif /* PWM_H_ */

@@ -109,7 +109,8 @@ int main(void)
 		
 		else
 		{
-			printf("\r\n thermal error ...");
+			return(-1);
+			//printf("\r\n thermal error ...");
 		}
 		
 		/*** TEST ADC CHANNEL 0 ***/
@@ -163,19 +164,17 @@ int main(void)
 		_delay_ms(1000);
 		#endif
 		
-		//
-		///*** TEST PWM SERVO ***/
+		/*** TEST PWM SERVO ***/		
+		//pwm_setPosition(45);
+		//_delay_ms(500);
 		//pwm_setPosition(90);
-		//
-		//_delay_ms(5000);
-		//
-		///*** TEST PWM SERVO ***/
-		//pwm_setPosition(180);
-		//
-		//_delay_ms(5000);
-		//
-		//
-		//pwm_setPosition(0);
+		//_delay_ms(500);
+		//pwm_setPosition(115);
+		//_delay_ms(500);
+		//pwm_setPosition(150);
+		//_delay_ms(500);
+		//pwm_setPosition(10);
+		//_delay_ms(500);
 		
 		//cli();
 			
@@ -186,24 +185,23 @@ int main(void)
 }
 
 
-ISR(TIMER1_OVF_vect)
+ISR(TIMER3_OVF_vect)
 {
 	/*
 	* Routine d'interruption activee lors d'un
 	* overflow du timer1
 	*/
 	
-	PORTB |= (1 << PB5);
+	PORTE |= (1 <<PE3);
 }
 
-ISR(TIMER1_COMPA_vect)
+ISR(TIMER3_COMPA_vect)
 {
 	/*
 	* Routine d'interruption activee lors du compare match
 	* entre ocr1 (temps à l'état haut) et timer1
 	*/
-	
-	PORTB |= (0 << PB5);
+	PORTE|= (0 << PE3);
 }
 
 
