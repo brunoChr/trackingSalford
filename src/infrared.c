@@ -7,6 +7,14 @@
 
 #include "../lib/infrared.h"
 
+/* SENSOR SHARP GP2Y0A02YK CARACTERISTIC */
+/* • Detection Accuracy @ 80 cm: ±10 cm	*/
+/* • Range: 20 to 150 cm */
+/* • Typical response time: 39 ms */
+/* • Typical start up delay: 44 ms */
+/* • Average Current Consumption: 33 mA */
+
+
 /*	TODO
 	maybe filter : mean, average, khalman Filer
 	

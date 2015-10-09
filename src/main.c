@@ -3,6 +3,16 @@
 /************************************************************************/
 
 
+/************************************************************************/
+/* KEYBOARD SHORTCUT 
+ * CommentSelection		CTRL+K, CTRL+C
+ * UncommentSelection	CTRL+K, CTRL+U                          
+ * TabLeft				SHIFT+TAB
+ * 
+*/
+/************************************************************************/
+
+
 #include "../lib/cpu.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,13 +32,20 @@
 #include "../lib/infrared.h"
 #include "../lib/serialData.h"
 
+
 #define TAILLE_DATA 4*4
 #define ADC_CH_IR_RIGHT	0
 #define ADC_CH_IR_LEFT	1
 
-//Globalvar.
-BYTE thermal_data[THERMAL_BUFF_SIZE];
+#define DEBUG 0
+
+//Globalvar
+
+BYTE thermal_Buff[THERMAL_BUFF_SIZE];
+BYTE thermal_Data[THERMAL_BUFF_SIZE];
+
 BYTE* randomByteArray();
+
 
 void setup(void)
 {
@@ -60,43 +77,54 @@ int main(void)
 	uint16_t adcResultCh0, adcResultCh1;
 	int8_t  distanceIRrLeft, distanceIrRight;
 	BYTE *dataSerial;
+	serialProtocol Frame;
+	BYTE index;
+	SHORT pos;
+	BYTE *tP;
 	
 	/*** VARIABLE INITIALISATION ***/
 	adcResultCh0 = 0;
 	adcResultCh1 = 0;
 	distanceIrRight = 0;
 	distanceIRrLeft = 0;
+	pos = -90;
 	
 	//_delay_ms(1000);
 		
 	/*** SETUP SYSTEM ***/
 	setup();
 	
-	//printf("\n~ Board Ready ~\n");
+	printf("\n~ Board Ready ~\n");
 	
 	/*** WAITING ***/
-	//_delay_ms(1000);
+	#if DEBUG
+	#else
+	_delay_ms(1000);
+	#endif
 
-	formatProtocol(IR_R_SENSOR, randomByteArray());
 
 	/*** INFINITE LOOP ***/
 	while(1)
 	{	
+
+		/*** TEST THERMAL SENSOR ***/
+		thermal_Data = mesure_thermal(thermal_Buff, THERMAL_BUFF_SIZE-1);
 		
-		/*** TEST THERMAL SENSOR ***/		
-		//mesure_thermal(thermal_data, THERMAL_BUFF_SIZE-1);
-	
-		//printf("\n\rthermalData : ");
-	
 		ATOMIC_BLOCK(ATOMIC_FORCEON)
 		{
+					
+		for (index = 0 ; index < 16 ; index++)
+		{
+			printf(" %d", *(thermal_Data + index));
+		}
+					
+		printf("\r\n");
 		
 		/*** TEST ADC CHANNEL 0 ***/
 		adcResultCh0 = adc_read(ADC_CH_IR_RIGHT);
 		
 		/*** TEST IR SENSOR ***/
 		distanceIrRight = sharp_IR_interpret_GP2Y0A02YK(adcResultCh0);
-		
 		
 		/*** TEST ADC CHANNEL 1 ***/
 		adcResultCh1 = adc_read(ADC_CH_IR_LEFT);
@@ -106,17 +134,57 @@ int main(void)
 		
 		}
 		
+		
 		/* PRINT ADC VALUES */
-		printf("%d\t%d\t%d\t%d\r",adcResultCh0, adcResultCh1, distanceIrRight, distanceIRrLeft);
+		//printf("\r\n%d %f",adcResultCh0, adc2MilliVolt(adcResultCh0));
+		//printf("\r\n%d\t%d\t%d\t%d",adcResultCh0, adcResultCh1, distanceIrRight, distanceIRrLeft);
 		//printf("%d\t%d\r",distanceIrRight, distanceIRrLeft);
 		//uart_putchar(distanceIrRight);
 		//uart_putchar(distanceIRrLeft);
+	
+		/*** TEST FORMAT PROTOCOL ***/
+		//Frame = formatProtocol(IR_R_SENSOR, adcResultCh1, NBR_DATA);
+		//
+		//printf("\r\n%d %d ", Frame.sb, Frame.id);
+		//
+		//for (index = 0; index < NBR_DATA; index++)
+		//{
+			//printf("%d", &Frame.data[index]);
+		//}
+		//
+		//printf(" %d %d %d", Frame.cn, Frame.cs, Frame.eb);
+		//
+		//
+		///*** TEST PWM SERVO ***/
 		
+		//if(pos < 80)
+		//{
+			//pwm_setPosition((pos));
+			//pos += 1;	
+		//}
+		//else
+		//{
+			//pos = -90;	
+		//}
 		
-		/*** TEST PWM SERVO ***/
-		pwm_positionCentrale();
+		#if DEBUG
+		#else
+		_delay_ms(1000);
+		#endif
 		
+		//
+		///*** TEST PWM SERVO ***/
+		//pwm_setPosition(90);
+		//
 		//_delay_ms(5000);
+		//
+		///*** TEST PWM SERVO ***/
+		//pwm_setPosition(180);
+		//
+		//_delay_ms(5000);
+		//
+		//
+		//pwm_setPosition(0);
 		
 		//cli();
 			
@@ -127,7 +195,6 @@ int main(void)
 }
 
 
-
 ISR(TIMER1_OVF_vect)
 {
 	/*
@@ -135,7 +202,7 @@ ISR(TIMER1_OVF_vect)
 	* overflow du timer1
 	*/
 	
-	PORTB |= (1 <<PORTB5);
+	PORTB |= (1 << PB5);
 }
 
 ISR(TIMER1_COMPA_vect)
@@ -144,23 +211,24 @@ ISR(TIMER1_COMPA_vect)
 	* Routine d'interruption activee lors du compare match
 	* entre ocr1 (temps à l'état haut) et timer1
 	*/
-	PORTB|= (0 << PORTB5);
+	
+	PORTB |= (0 << PB5);
 }
 
 
-BYTE* randomByteArray()
-{
-	int size = 8;
-	int i;
-	BYTE array[size];
-	BYTE *aPtr = malloc(sizeof(BYTE) * size);
-	
-	srand(1);
-	
-	for (i = 0; i < size; i++)
-	{
-		aPtr[i] = (rand() % 101) + 500;
-	}
-	
-	return *aPtr;
-}
+//BYTE* randomByteArray()
+//{
+	//int size = 8;
+	//int i;
+	//BYTE array[size];
+	//BYTE *aPtr = malloc(sizeof(BYTE) * size);
+	//
+	//srand(1);
+	//
+	//for (i = 0; i < size; i++)
+	//{
+		//aPtr[i] = (rand() % 101) + 500;
+	//}
+	//
+	//return *aPtr;
+//}

@@ -1,6 +1,8 @@
 #include "../lib/thermal.h"
 #include "../lib/uart.h"
 
+
+	
 BOOL thermal_read(BYTE address, BYTE *data)
 {
 	int check = 0;
@@ -47,39 +49,50 @@ int D6T_checkPEC( BYTE *buf, int pPEC )
 }
 
 
-int mesure_thermal(BYTE *thermal_data, BYTE size)
+BYTE* mesure_thermal(BYTE *thermal_Buff, BYTE size)
 {
-	BYTE tPTAT;
-	BYTE tP[THERMAL_TP_SIZE];
-	BYTE tPEC;
-	
-	if(!D6T_checkPEC(thermal_data,size)){
+	static BYTE tPTAT;
+	static BYTE tP[THERMAL_TP_SIZE];
+	static BYTE tPEC;
+
+	if(!D6T_checkPEC(thermal_Buff, size)){
 		return -1; // e r r o r
 	}
-	thermal_read(THERMAL_ADD,thermal_data);
-	tPTAT=256*thermal_data[1]+thermal_data[0];
-	tP[0]=256*thermal_data[3]+thermal_data[2];
-	tP[1]=256*thermal_data[5]+thermal_data[4];
-	tP[2]=256*thermal_data[7]+thermal_data[6];
-	tP[3]=256*thermal_data[9]+thermal_data[8];
-	tP[4]=256*thermal_data[11]+thermal_data[10];
-	tP[5]=256*thermal_data[13]+thermal_data[12];
-	tP[6]=256*thermal_data[15]+thermal_data[14];
-	tP[7]=256*thermal_data[17]+thermal_data[16];
-	tP[8]=256*thermal_data[19]+thermal_data[18];
-	tP[9]=256*thermal_data[21]+thermal_data[20];
-	tP[10]=256*thermal_data[23]+thermal_data[22];
-	tP[11]=256*thermal_data[25]+thermal_data[24];
-	tP[12]=256*thermal_data[27]+thermal_data[26];
-	tP[13]=256*thermal_data[29]+thermal_data[28];
-	tP[14]=256*thermal_data[31]+thermal_data[30];
-	tP[15]=256*thermal_data[33]+thermal_data[32];
-	tPEC=thermal_data[34];
 	
-	uart_putchar(tPTAT);
-	for(int i=0;i<16;i++){
-		uart_putchar(tP[i]*128/256);
-	}
-	uart_putchar(tPEC);
-	return 0;
+	thermal_read(THERMAL_ADD, thermal_Buff);
+	
+	tPTAT=256*thermal_Buff[1]+thermal_Buff[0];
+	
+	tP[0]=256*thermal_Buff[3]+thermal_Buff[2];
+	tP[1]=256*thermal_Buff[5]+thermal_Buff[4];
+	tP[2]=256*thermal_Buff[7]+thermal_Buff[6];
+	tP[3]=256*thermal_Buff[9]+thermal_Buff[8];
+	tP[4]=256*thermal_Buff[11]+thermal_Buff[10];
+	tP[5]=256*thermal_Buff[13]+thermal_Buff[12];
+	tP[6]=256*thermal_Buff[15]+thermal_Buff[14];
+	tP[7]=256*thermal_Buff[17]+thermal_Buff[16];
+	tP[8]=256*thermal_Buff[19]+thermal_Buff[18];
+	tP[9]=256*thermal_Buff[21]+thermal_Buff[20];
+	tP[10]=256*thermal_Buff[23]+thermal_Buff[22];
+	tP[11]=256*thermal_Buff[25]+thermal_Buff[24];
+	tP[12]=256*thermal_Buff[27]+thermal_Buff[26];
+	tP[13]=256*thermal_Buff[29]+thermal_Buff[28];
+	tP[14]=256*thermal_Buff[31]+thermal_Buff[30];
+	tP[15]=256*thermal_Buff[33]+thermal_Buff[32];
+	
+	tPEC=thermal_Buff[34];
+	
+	//uart_putchar(tPTAT);
+	
+	//for(int i=0;i<16;i++)
+	//{
+		//printf("%d ", tP[i]);
+	//}
+	//
+	//printf("\r\n");
+	
+	
+	//uart_putchar(tPEC);
+	
+	return thermal_Buff;
 }

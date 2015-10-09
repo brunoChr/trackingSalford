@@ -19,7 +19,7 @@
  *  \exception 
  *  \return a character pointer.
  */
-serialProtocol formatProtocol(BYTE id, BYTE data[NBR_DATA])
+serialProtocol formatProtocol(BYTE id, BYTE *data, INT nbrData)
 {
 	/*** SERIAL PROTOCOL FORMAT ***/
 	/*** SB/ID/D0...D15/CS/..CN../EB ***/
@@ -35,7 +35,7 @@ serialProtocol formatProtocol(BYTE id, BYTE data[NBR_DATA])
 	trameData.cs = computeCrc(data, NBR_DATA, 0x04);
 	trameData.eb = END_BYTE;
 	
-	return (trameData);
+	return trameData;
 }
 
 

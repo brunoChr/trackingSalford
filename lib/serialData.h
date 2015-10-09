@@ -51,7 +51,7 @@ typedef struct serialProtocol
 
 /*** PROTOTYPE ***/
 
-serialProtocol formatProtocol(BYTE id, BYTE data[NBR_DATA]);
+serialProtocol formatProtocol(BYTE id, BYTE *data, INT nbrData);
 BYTE checksumCalculation(BYTE *data, BYTE size);
 BYTE computeCrc(BYTE *data, BYTE nbrOfBytes, BYTE checksum);
 

@@ -27,7 +27,7 @@ void adc_init()
 }
 
 
-uint16_t adc_read(uint8_t ch)
+unsigned int adc_read(BYTE ch)
 {
 	// select the corresponding channel 0~7
 	// ANDing with ’7? will always keep the value
@@ -46,4 +46,10 @@ uint16_t adc_read(uint8_t ch)
 	while(ADCSRA & (1<<ADSC));
 	
 	return (ADC);
+}
+
+
+FLOAT adc2MilliVolt(unsigned int adcData)
+{
+	return ((adcData*5)/1023);
 }

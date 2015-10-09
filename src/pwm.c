@@ -8,6 +8,7 @@
 #include "../lib/pwm.h"
 #include <avr/interrupt.h>
 
+
 void pwm_activeInterrupt()
 {
 	/*
@@ -27,11 +28,10 @@ void pwm_init()
 	sei(); // Activation des interruptions globales
 	
 	pwm_activeInterrupt();
-	pwm_positionCentrale();
 	
 	/*Utilisation du port B*/
 	DDRB |= (1 << DDB5);// PORTB5 en sortie
-	PORTB |= (1 << PORTB5); // PORTB5 active High
+	PORTB |= (1 << PB5); // PORTB5 active High
 			
 	/*Toggle OC1A on compare match*/
 	TCCR1A |= (1 << COM1A1);
@@ -40,15 +40,19 @@ void pwm_init()
 	/*Fast PWM Mode, 10-bit
 	* Valeur de TOP pour l'overflow = 1023
 	*/
-	TCCR1A |= (0 << WGM11);
 	TCCR1A |= (1 << WGM10);
-	TCCR1B |= (1 << WGM13);
+	TCCR1A |= (1 << WGM11);
 	TCCR1B |= (1 << WGM12);
+	TCCR1B |= (0 << WGM13);
+
 	
 	/*Clk (Prescaler : 64)*/
-	TCCR1B |= (0 << CS12);
-	TCCR1B |= (1 << CS11);
 	TCCR1B |= (1 << CS10);
+	TCCR1B |= (1 << CS11);
+	TCCR1B |= (0 << CS12);
+
+	
+	pwm_positionCentrale();
 	
 }
 
