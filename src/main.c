@@ -86,8 +86,7 @@ int main(void)
 	#else
 	_delay_ms(1000);
 	#endif
-
-
+	
 	/*** INFINITE LOOP ***/
 	while(1)
 	{	
@@ -137,15 +136,18 @@ int main(void)
 		/*** TEST FORMAT PROTOCOL ***/
 		Frame = formatProtocol(THERMAL_SENSOR, thermalDataPtr, NBR_DATA);
 		
-		printf("\r\n%d%d", Frame.sb, Frame.id);
+		uart_putchar(Frame.sb);
+		uart_putchar(Frame.id);
 		
 		for (index = 0; index < NBR_DATA; index++)
 		{
-			printf("%d", Frame.data[index]);
+			uart_putchar(Frame.data[index]);
 		}
 		
-		printf("%d%d%d", Frame.cs, Frame.cn, Frame.eb);
-		
+		uart_putchar(Frame.cs);
+		uart_putchar(Frame.cn);
+		uart_putchar(Frame.eb);
+
 		
 		///*** TEST PWM SERVO ***/
 		
@@ -230,7 +232,7 @@ void setup(void)
 	uart_init(9600);
 	//servo_init();
 	adc_init();
-	pwm_init();
+	//pwm_init();
 	//LCD_init();
 	if(!twi_init(100000)) // Init I2C  with 100KHz bitrate.
 	{
