@@ -51,7 +51,6 @@ int info_tracking(int8_t distanceIrRight, int8_t distanceIrLeft)
 	}
 	
 	return 0;
-
 }
 
 /*! \fn void tracking(int8_t distanceIrRight, int8_t distanceIrLeft)
