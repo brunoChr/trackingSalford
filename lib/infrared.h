@@ -1,7 +1,7 @@
-/*
-* infrared.h
+/*!
+* \file infrared.h
 *
-* Created: 05/10/2015 15:26:31
+*  Created: 05/10/2015 15:26:31
 *  Author: b.christol
 */
 

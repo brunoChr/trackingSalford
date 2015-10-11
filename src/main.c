@@ -1,72 +1,31 @@
+/**
+ * \file main.c
+ * Main code
+ * The based of the project TRACKING SALFORD 
+ */
+
 /************************************************************************/
 /*						TRACKING PROJECT SALFORD                        */
 /************************************************************************/
 
 
-/************************************************************************/
-/* KEYBOARD SHORTCUT 
- * CommentSelection		CTRL+K, CTRL+C
- * UncommentSelection	CTRL+K, CTRL+U                          
- * TabLeft				SHIFT+TAB
- * 
-*/
-/************************************************************************/
-
-
-#include "../lib/cpu.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <avr/io.h>
-#include <util/delay.h>
-#include <avr/interrupt.h>
-#include <util/atomic.h>
-
-
-#include "../lib/twi.h"
-#include "../lib/port.h"
-#include "../lib/uart.h"
-#include "../lib/types.h"
-#include "../lib/thermal.h"
-#include "../lib/generics.h"
-#include "../lib/adc.h"
-#include "../lib/pwm.h"
-#include "../lib/infrared.h"
-#include "../lib/serialData.h"
-
-
-#define TAILLE_DATA 4*4		//!< \Matrix temp sensor
-#define ADC_CH_IR_RIGHT	0	//!< \ADC channel of the right IR sensor
-#define ADC_CH_IR_LEFT	1	//!< \ADC channel of the left IR sensor
-
-#define DEBUG 0
-
-
-/*** Globalvar ***/
-
-BYTE thermal_Buff[THERMAL_BUFF_SIZE];	//!< \Buffer of temp
-BYTE *thermalDataPtr;					//!< \Pointer to the buffer temp
-
-
-/*** Prototype function main ***/
-
-BYTE * getRandom();		//!< \Return a 16 byte array fill with random number
-void setup(void);		//!< \Init function of the system
+#include "../lib/main.h"
 
 
 /*!
  * Main function.
  *
- * Ref adc_read(), sharp_IR_interpret_GP2Y0A02YK(), pwm_positionCentrale().
+ * Ref adc_read() ...
  */
 int main(void)
 {
-	uint16_t adcResultCh0, adcResultCh1;
-	int8_t  distanceIRrLeft, distanceIrRight;
-	BYTE *dataSerial;
+	UINT adcResultCh0, adcResultCh1;
+	UINT  distanceIRrLeft, distanceIrRight;
 	serialProtocol Frame;
 	BYTE index;
 	SHORT pos;
-	
+
+
 	/*** VARIABLE INITIALISATION ***/
 	adcResultCh0 = 0;
 	adcResultCh1 = 0;
@@ -74,11 +33,9 @@ int main(void)
 	distanceIRrLeft = 0;
 	pos = -90;
 	
-	//_delay_ms(1000);
-		
-	/*** SETUP SYSTEM ***/
-	setup();
 	
+	/*** SETUP SYSTEM ***/
+	setup();				
 	printf("\n~ Board Ready ~\n");
 	
 	/*** WAITING ***/
@@ -87,10 +44,27 @@ int main(void)
 	_delay_ms(1000);
 	#endif
 	
+	cli(); // Interrupts should remain disabled - they will be enabled as soon as the first task starts executing.
+
+	// [+]The idle task sleeps the CPU  -  set the sleep mode to IDLE,
+	// as we need the sleep to be interruptable by the tick interrupt.
+	set_sleep_mode(SLEEP_MODE_IDLE);
+
+	// [+]Create tasks.
+	create_task(taskSensor, 0, 0, 65U, 100U, 0);
+	create_task(taskSerialTx, 0, 0, 65U, 100U, 0);
+	create_task(taskSerialRx, 0, 0, 65U, 50U,  0);
+	create_task(taskTracking, 0, 0, 65U, 50U,  0);
+
+	init_timer(1000U);	//!< \Set TIMER1_COMPA interrupt to tick every 80,000 clock cycles.
+
+	// [+]Start the RTOS - note that this function will never return.
+	task_switcher_start(idle_task, 0, 65U, 80U);
+	
+	
 	/*** INFINITE LOOP ***/
 	while(1)
 	{	
-		
 		ATOMIC_BLOCK(ATOMIC_FORCEON)
 		{
 		
@@ -133,6 +107,7 @@ int main(void)
 		//printf("%d\t%d\r",distanceIrRight, distanceIRrLeft);
 		//uart_putchar(distanceIrRight);
 		//uart_putchar(distanceIRrLeft);
+	
 	
 		/*** TEST FORMAT PROTOCOL ***/
 		Frame = formatProtocol(THERMAL_SENSOR, thermalDataPtr, NBR_DATA);
@@ -178,12 +153,9 @@ int main(void)
 		//_delay_ms(500);
 		//pwm_setPosition(10);
 		//_delay_ms(500);
-		
-		//cli();
 			
  		}
-		 
-	 
+		 	 
 	return(0);
 }
 
@@ -242,3 +214,86 @@ void setup(void)
 	}
 	/*** END OF INIT PART ***/
 }
+
+
+void delay_ms(unsigned int t)
+{
+	wait_for_increment_of(&tick, t, 0, 0);
+}
+
+
+void taskSensor(void *p)
+{
+	while(1)
+	{
+		printf("\nt1");
+		delay_ms(50);
+	}
+}
+
+
+void taskSerialTx(void *p)
+{
+	while(1)
+	{
+		printf("\nt2");
+		delay_ms(100);
+	}
+}
+
+
+volatile char x = ' ';
+
+void taskSerialRx(void *p)
+{
+	while(1)
+	{
+		x = uart_getchar();
+		delay_ms(1);
+	}
+}
+
+
+void taskTracking(void *p)
+{
+	while(1)
+	{
+		if(x == 'o')
+		printf("OK\n");
+		delay_ms(1);
+	}
+}
+
+
+void init_timer(unsigned int hz)
+{
+	// [+]Set TIMER1_COMPA interrupt to tick every 80,000 clock cycles.
+	TCCR1B = (1<<WGM12) && (1<<CS11); // CTC, clkI/O/8 (From prescaler).
+	OCR1A  = (F_CPU / (8 * hz)) - 1;  // Formula: (f_cpu / (64 * desired_f)) - 1, ex: f_pwm=1000Hz (period = 1ms standard).
+	TIFR   = (1<<OCF1A);
+	TIMSK |= (1<<OCIE1A);
+}
+
+
+// This is our idle task - the task that runs when all others are suspended.
+// We sleep the CPU - the CPU will automatically awake when the tick interrupt occurs
+// This task cannot be stopped, so it is automatically re-started whenever it tries to exit.
+void idle_task(void *p)
+{
+	sleep_enable();
+	sei();
+	sleep_cpu();
+}
+
+
+// This is a function that runs every tick interrupt - we use it to increment the tick semaphore value by one
+// We want a task switch to ALWAYS occur - it is part of the definition of the tick interrupt!
+uint8_t tick_interrupt()
+{
+	increment_semaphore_by(&tick, 1);
+	return(1);
+}
+
+
+// [+]Setup the TIMER1_COMPA interrupt - it will be our tick interrupt.
+TASK_ISR(TIMER1_COMPA_vect, tick_interrupt());

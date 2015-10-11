@@ -1,4 +1,5 @@
-/*
+/* \file rtos.h
+ *
  * Copyright (C) 2007-2009 Chris O'Byrne
  *
  * This file is part of YAVRTOS (see http://www.chris.obyrne.com/yavrtos/)

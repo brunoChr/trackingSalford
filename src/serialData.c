@@ -1,4 +1,4 @@
-/*
+/*!
  * \file serialData.c
  *
  * Created: 05/10/2015 10:34:25
@@ -39,7 +39,7 @@ serialProtocol formatProtocol(BYTE id, BYTE *data, INT nbrData)
 }
 
 
-/*! \fn BYTE checksumCalculation16bits(BYTE *data)
+/*! \fn checksumCalculation(BYTE *data, BYTE size)
  *  \brief compute checksum of data
  *  \param data : pointer on begin of data for calculation of checksum
  *  \param 

@@ -1,7 +1,7 @@
-/*
- * pwm.c
+/*!
+ *  \file pwm.c
  *
- * Created: 05/10/2015 15:21:10
+ *  Created: 05/10/2015 15:21:10
  *  Author: b.christol
  */ 
 
