@@ -116,13 +116,14 @@ int main(void)
 		adcResultCh0 = adc_read(ADC_CH_IR_RIGHT);
 		
 		/*** TEST IR SENSOR ***/
-		distanceIrRight = sharp_IR_interpret_GP2Y0A02YK(adcResultCh0);
+		distanceIrRight = lookupInfrared(adcResultCh0);
 		
 		/*** TEST ADC CHANNEL 1 ***/
 		adcResultCh1 = adc_read(ADC_CH_IR_LEFT);
 				
 		/*** TEST IR SENSOR ***/
-		distanceIRrLeft = sharp_IR_interpret_GP2Y0A02YK(adcResultCh1);
+		distanceIRrLeft = lookupInfrared(adcResultCh1);
+		
 		}
 		
 		
