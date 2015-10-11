@@ -33,7 +33,7 @@ TcfTransactionLog.csv
 /.libs
 /*.la
 /*.lo
-
+doxygen
 
 #############
 ## Visual Studio
