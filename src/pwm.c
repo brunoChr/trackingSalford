@@ -89,18 +89,21 @@ void pwm_rotationGauche(void)
 {
 	/*Reglage du temps haut à 1 ms (position extreme gauche)*/
 
-	OCR3A = ICR3/20; //20ms pour une fréquence de PWM = 50Hz
+	//OCR3A = ICR3/20; //20ms pour une fréquence de PWM = 50Hz
+	OCR3A = tableDeCalcul(0);
 }
 
 void pwm_rotationDroite(void)
 {
 	/*Reglage du temps haut à 2 ms (position extreme droite)*/
-	OCR3A = ICR3 * (2/20); //20ms pour une fréquence de PWM = 50Hz
+	//OCR3A = ICR3 * (2/20); //20ms pour une fréquence de PWM = 50Hz
+	OCR3A = tableDeCalcul(180);
 }
 
 void pwm_positionCentrale(void)
 {
-	OCR3A = ICR3 * (1.5/20); //20ms pour une fréquence de PWM = 50Hz
+	//OCR3A = ICR3 * (1.5/20); //20ms pour une fréquence de PWM = 50Hz
+	OCR3A = tableDeCalcul(90);
 }
 
 void pwm_setPosition(unsigned int angle)
