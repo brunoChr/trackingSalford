@@ -61,8 +61,8 @@ void setup(void);		//!< \Init function of the system
  */
 int main(void)
 {
-	uint16_t adcResultCh0, adcResultCh1;
-	int8_t  distanceIRrLeft, distanceIrRight;
+	UINT adcResultCh0, adcResultCh1;
+	UINT  distanceIRrLeft, distanceIrRight;
 	BYTE *dataSerial;
 	serialProtocol Frame;
 	BYTE index;
@@ -87,8 +87,7 @@ int main(void)
 	#else
 	_delay_ms(1000);
 	#endif
-
-
+	
 	/*** INFINITE LOOP ***/
 	while(1)
 	{	
@@ -118,35 +117,39 @@ int main(void)
 		adcResultCh0 = adc_read(ADC_CH_IR_RIGHT);
 		
 		/*** TEST IR SENSOR ***/
-		distanceIrRight = sharp_IR_interpret_GP2Y0A02YK(adcResultCh0);
+		distanceIrRight = lookupInfrared(adcResultCh0);
 		
 		/*** TEST ADC CHANNEL 1 ***/
 		adcResultCh1 = adc_read(ADC_CH_IR_LEFT);
 				
 		/*** TEST IR SENSOR ***/
-		distanceIRrLeft = sharp_IR_interpret_GP2Y0A02YK(adcResultCh1);
+		distanceIRrLeft = lookupInfrared(adcResultCh1);
+		
 		}
 		
 		
 		/* PRINT ADC VALUES */
 		//printf("\r\n%d %f",adcResultCh0, adc2MilliVolt(adcResultCh0));
-		//printf("\r\n%d\t%d\t%d\t%d",adcResultCh0, adcResultCh1, distanceIrRight, distanceIRrLeft);
+		printf("\r\n%d\t%d\t%d\t%d",adcResultCh0, adcResultCh1, distanceIrRight, distanceIRrLeft);
 		//printf("%d\t%d\r",distanceIrRight, distanceIRrLeft);
 		//uart_putchar(distanceIrRight);
 		//uart_putchar(distanceIRrLeft);
 	
 		/*** TEST FORMAT PROTOCOL ***/
-		Frame = formatProtocol(THERMAL_SENSOR, thermalDataPtr, NBR_DATA);
-		
-		printf("\r\n%d%d", Frame.sb, Frame.id);
-		
-		for (index = 0; index < NBR_DATA; index++)
-		{
-			printf("%d", Frame.data[index]);
-		}
-		
-		printf("%d%d%d", Frame.cs, Frame.cn, Frame.eb);
-		
+		//Frame = formatProtocol(THERMAL_SENSOR, thermalDataPtr, NBR_DATA);
+		//
+		//uart_putchar(Frame.sb);
+		//uart_putchar(Frame.id);
+		//
+		//for (index = 0; index < NBR_DATA; index++)
+		//{
+			//uart_putchar(Frame.data[index]);
+		//}
+		//
+		//uart_putchar(Frame.cs);
+		//uart_putchar(Frame.cn);
+		//uart_putchar(Frame.eb);
+
 		
 		///*** TEST PWM SERVO ***/
 		
@@ -235,7 +238,7 @@ void setup(void)
 	uart_init(9600);
 	//servo_init();
 	adc_init();
-	pwm_init();
+	//pwm_init();
 	//LCD_init();
 	if(!twi_init(100000)) // Init I2C  with 100KHz bitrate.
 	{
