@@ -77,7 +77,7 @@ void tracking(int8_t distanceIrRight, int8_t distanceIrLeft)
 			i++;
 		}
 		
-		else if(info_tracking(distanceIrRight, distanceIrLeft) == NEED_ROTATION_DROITE)
+		else if(info_tracking(distanceIrRight, distanceIrLeft) == NEED_ROTATION_GAUCHE)
 		{
 			//!< if the pwm previously went to the right, 'i' must be reinitialized
 			if(i > 0)
