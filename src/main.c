@@ -19,13 +19,7 @@
  */
 int main(void)
 {
-	UINT adcResultCh0, adcResultCh1;
-	UINT  distanceIRrLeft, distanceIrRight;
-	serialProtocol Frame;
-	BYTE index;
-	SHORT pos;
-
-
+	
 	/*** VARIABLE INITIALISATION ***/
 	adcResultCh0 = 0;
 	adcResultCh1 = 0;
@@ -33,18 +27,19 @@ int main(void)
 	distanceIRrLeft = 0;
 	pos = -90;
 	
-	
+	cli(); //<! \ Interrupts should remain disabled - they will be enabled as soon as the first task starts executing.
+		
 	/*** SETUP SYSTEM ***/
 	setup();				
-	printf("\n~ Board Ready ~\n");
 	
+	clr(B,0);	
+		
 	/*** WAITING ***/
 	#if DEBUG
 	#else
-	_delay_ms(1000);
+	_delay_ms(2000);
 	#endif
 	
-	cli(); // Interrupts should remain disabled - they will be enabled as soon as the first task starts executing.
 
 	// [+]The idle task sleeps the CPU  -  set the sleep mode to IDLE,
 	// as we need the sleep to be interruptable by the tick interrupt.
@@ -62,99 +57,7 @@ int main(void)
 	task_switcher_start(idle_task, 0, 65U, 80U);
 	
 	
-	/*** INFINITE LOOP ***/
-	while(1)
-	{	
-		ATOMIC_BLOCK(ATOMIC_FORCEON)
-		{
-		
-		thermalDataPtr = mesure_thermal(thermal_Buff, THERMAL_BUFF_SIZE - 1) ;
-			
-		/*** TEST THERMAL SENSOR ***/
-		if(thermalDataPtr != NULL)
-		{
-			//for (index = 0 ; index < THERMAL_TP_SIZE-1 ; index++)
-			//{
-				//printf(" %d", thermalDataPtr[index]);
-			//}		
-			//printf("\r\n");
-		}
-		
-		else
-		{
-			return(-1);
-			//printf("\r\n thermal error ...");
-		}
-		
-		/*** TEST ADC CHANNEL 0 ***/
-		adcResultCh0 = adc_read(ADC_CH_IR_RIGHT);
-		
-		/*** TEST IR SENSOR ***/
-		distanceIrRight = lookupInfrared(adcResultCh0);
-		
-		/*** TEST ADC CHANNEL 1 ***/
-		adcResultCh1 = adc_read(ADC_CH_IR_LEFT);
-				
-		/*** TEST IR SENSOR ***/
-		distanceIRrLeft = lookupInfrared(adcResultCh1);
-		
-		}
-		
-		
-		/* PRINT ADC VALUES */
-		//printf("\r\n%d %f",adcResultCh0, adc2MilliVolt(adcResultCh0));
-		//printf("\r\n%d\t%d\t%d\t%d",adcResultCh0, adcResultCh1, distanceIrRight, distanceIRrLeft);
-		//printf("%d\t%d\r",distanceIrRight, distanceIRrLeft);
-		//uart_putchar(distanceIrRight);
-		//uart_putchar(distanceIRrLeft);
-	
-	
-		/*** TEST FORMAT PROTOCOL ***/
-		Frame = formatProtocol(THERMAL_SENSOR, thermalDataPtr, NBR_DATA);
-		
-		uart_putchar(Frame.sb);
-		uart_putchar(Frame.id);
-		
-		for (index = 0; index < NBR_DATA; index++)
-		{
-			uart_putchar(Frame.data[index]);
-		}
-		
-		uart_putchar(Frame.cs);
-		uart_putchar(Frame.cn);
-		uart_putchar(Frame.eb);
-
-		
-		///*** TEST PWM SERVO ***/
-		
-		//if(pos < 80)
-		//{
-			//pwm_setPosition((pos));
-			//pos += 1;	
-		//}
-		//else
-		//{
-			//pos = -90;	
-		//}
-		
-		#if DEBUG
-		#else
-		_delay_ms(1000);
-		#endif
-		
-		/*** TEST PWM SERVO ***/		
-		//pwm_setPosition(45);
-		//_delay_ms(500);
-		//pwm_setPosition(90);
-		//_delay_ms(500);
-		//pwm_setPosition(115);
-		//_delay_ms(500);
-		//pwm_setPosition(150);
-		//_delay_ms(500);
-		//pwm_setPosition(10);
-		//_delay_ms(500);
-			
- 		}
+	/*** NO INFINITE LOOP IN MAIN : RTOS RUN ***/
 		 	 
 	return(0);
 }
@@ -212,6 +115,9 @@ void setup(void)
 		printf("\nError in initiating I2C interface.");
 		while(1);
 	}
+	
+	printf("\n~ Board Ready ~\n");
+	
 	/*** END OF INIT PART ***/
 }
 
@@ -226,6 +132,20 @@ void taskSensor(void *p)
 {
 	while(1)
 	{
+		thermalDataPtr = mesure_thermal(thermal_Buff, THERMAL_BUFF_SIZE - 1) ;			//<! \Mesure of the thermal
+		
+		/*** TEST ADC CHANNEL 0 ***/
+		adcResultCh0 = adc_read(ADC_CH_IR_RIGHT);
+		
+		/*** TEST IR SENSOR ***/
+		distanceIrRight = lookupInfrared(adcResultCh0);
+		
+		/*** TEST ADC CHANNEL 1 ***/
+		adcResultCh1 = adc_read(ADC_CH_IR_LEFT);
+				
+		/*** TEST IR SENSOR ***/
+		distanceIRrLeft = lookupInfrared(adcResultCh1);
+		
 		printf("\nt1");
 		delay_ms(50);
 	}
@@ -236,6 +156,38 @@ void taskSerialTx(void *p)
 {
 	while(1)
 	{
+		/*** TEST THERMAL SENSOR ***/
+		if(thermalDataPtr != NULL)
+		{
+			for (index = 0 ; index < THERMAL_TP_SIZE-1 ; index++)
+			{
+			printf(" %d", thermalDataPtr[index]);
+			}
+			printf("\r\n");
+		}
+		else
+		{
+			return(-1);
+			printf("\r\n thermal error ...");
+		}
+		
+		printf("\r\n%d\t%d\t%d\t%d",adcResultCh0, adcResultCh1, distanceIrRight, distanceIRrLeft);
+		
+		/*** TEST FORMAT PROTOCOL ***/
+		//Frame = formatProtocol(THERMAL_SENSOR, thermalDataPtr, NBR_DATA);
+		//
+		//uart_putchar(Frame.sb);
+		//uart_putchar(Frame.id);
+		//
+		//for (index = 0; index < NBR_DATA; index++)
+		//{
+		//uart_putchar(Frame.data[index]);
+		//}
+		//
+		//uart_putchar(Frame.cs);
+		//uart_putchar(Frame.cn);
+		//uart_putchar(Frame.eb);
+				
 		printf("\nt2");
 		delay_ms(100);
 	}
@@ -258,6 +210,18 @@ void taskTracking(void *p)
 {
 	while(1)
 	{
+		///*** TEST PWM SERVO ***/
+				
+		//if(pos < 80)
+		//{
+		//pwm_setPosition((pos));
+		//pos += 1;
+		//}
+		//else
+		//{
+		//pos = -90;
+		//}
+		
 		if(x == 'o')
 		printf("OK\n");
 		delay_ms(1);

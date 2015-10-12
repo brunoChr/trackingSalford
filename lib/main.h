@@ -50,7 +50,11 @@
 BYTE thermal_Buff[THERMAL_BUFF_SIZE];		//!< \Buffer of temp
 BYTE *thermalDataPtr;						//!< \Pointer to the buffer temp
 static semaphore_t tick = {0};				//!< \A semaphore is incremented at every tick.
-
+UINT adcResultCh0, adcResultCh1;
+UINT  distanceIRrLeft, distanceIrRight;
+serialProtocol Frame;
+BYTE index;
+SHORT pos;
 
 /*** Prototype function main ***/
 
