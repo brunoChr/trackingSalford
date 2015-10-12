@@ -32,6 +32,7 @@
 #include "../lib/pwm.h"
 #include "../lib/infrared.h"
 #include "../lib/serialData.h"
+#include "../lib/tracking.h"
 
 
 #define TAILLE_DATA 4*4		//!< \Matrix temp sensor
@@ -65,14 +66,14 @@ int main(void)
 	BYTE *dataSerial;
 	serialProtocol Frame;
 	BYTE index;
-	SHORT pos;
+	//SHORT pos;
 	
 	/*** VARIABLE INITIALISATION ***/
 	adcResultCh0 = 0;
 	adcResultCh1 = 0;
 	distanceIrRight = 0;
 	distanceIRrLeft = 0;
-	pos = -90;
+	//pos = -90;
 	
 	//_delay_ms(1000);
 		
@@ -164,19 +165,23 @@ int main(void)
 		_delay_ms(1000);
 		#endif
 		
-		/*** TEST PWM SERVO ***/		
-		//pwm_setPosition(45);
-		//_delay_ms(500);
-		//pwm_setPosition(90);
-		//_delay_ms(500);
-		//pwm_setPosition(115);
-		//_delay_ms(500);
-		//pwm_setPosition(150);
-		//_delay_ms(500);
-		//pwm_setPosition(10);
-		//_delay_ms(500);
 		
+		/*** TEST PWM SERVO **		
+		pwm_setPosition(45);
+		_delay_ms(500);
+		pwm_setPosition(90);
+		_delay_ms(500);
+		pwm_setPosition(115);
+		_delay_ms(500);
+		pwm_setPosition(150);
+		_delay_ms(500);
+		pwm_setPosition(10);
+		_delay_ms(500);
+		*/
 		//cli();
+		/* Test Tracking */
+		tracking(distanceIrRight, distanceIRrLeft);
+		_delay_ms(200);
 			
  		}
 		 
