@@ -60,8 +60,8 @@ void setup(void);		//!< \Init function of the system
  */
 int main(void)
 {
-	uint16_t adcResultCh0, adcResultCh1;
-	int8_t  distanceIRrLeft, distanceIrRight;
+	UINT adcResultCh0, adcResultCh1;
+	UINT  distanceIRrLeft, distanceIrRight;
 	BYTE *dataSerial;
 	serialProtocol Frame;
 	BYTE index;
@@ -129,25 +129,25 @@ int main(void)
 		
 		/* PRINT ADC VALUES */
 		//printf("\r\n%d %f",adcResultCh0, adc2MilliVolt(adcResultCh0));
-		//printf("\r\n%d\t%d\t%d\t%d",adcResultCh0, adcResultCh1, distanceIrRight, distanceIRrLeft);
+		printf("\r\n%d\t%d\t%d\t%d",adcResultCh0, adcResultCh1, distanceIrRight, distanceIRrLeft);
 		//printf("%d\t%d\r",distanceIrRight, distanceIRrLeft);
 		//uart_putchar(distanceIrRight);
 		//uart_putchar(distanceIRrLeft);
 	
 		/*** TEST FORMAT PROTOCOL ***/
-		Frame = formatProtocol(THERMAL_SENSOR, thermalDataPtr, NBR_DATA);
-		
-		uart_putchar(Frame.sb);
-		uart_putchar(Frame.id);
-		
-		for (index = 0; index < NBR_DATA; index++)
-		{
-			uart_putchar(Frame.data[index]);
-		}
-		
-		uart_putchar(Frame.cs);
-		uart_putchar(Frame.cn);
-		uart_putchar(Frame.eb);
+		//Frame = formatProtocol(THERMAL_SENSOR, thermalDataPtr, NBR_DATA);
+		//
+		//uart_putchar(Frame.sb);
+		//uart_putchar(Frame.id);
+		//
+		//for (index = 0; index < NBR_DATA; index++)
+		//{
+			//uart_putchar(Frame.data[index]);
+		//}
+		//
+		//uart_putchar(Frame.cs);
+		//uart_putchar(Frame.cn);
+		//uart_putchar(Frame.eb);
 
 		
 		///*** TEST PWM SERVO ***/
