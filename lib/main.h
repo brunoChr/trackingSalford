@@ -44,6 +44,11 @@
 #define ADC_CH_IR_LEFT	1					//!< \ADC channel of the left IR sensor
 #define DEBUG 0								//!< \Debug macro
 
+#define DELAY_TSENSOR		5					//!< Delay for task sensor in ms
+#define DELAY_TSERIALTX		50					//!< Delay for task serial tx in ms
+#define DELAY_TSERIALRX		50					//!< Delay for task serial rx in ms
+#define DELAY_TTRACKING		100					//!< Delay for task tracking in ms
+
 
 /*** Globalvar ***/
 

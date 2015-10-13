@@ -19,6 +19,7 @@
  */
 int main(void)
 {
+	char x = ' ';
 	
 	/*** VARIABLE INITIALISATION ***/
 	adcResultCh0 = 0;
@@ -46,10 +47,11 @@ int main(void)
 	set_sleep_mode(SLEEP_MODE_IDLE);
 
 	// [+]Create tasks.
+	// Priority and Buffer NEED TO BE VERIFY
 	create_task(taskSensor, 0, 0, 65U, 100U, 0);
 	create_task(taskSerialTx, 0, 0, 65U, 100U, 0);
-	create_task(taskSerialRx, 0, 0, 65U, 50U,  0);
-	create_task(taskTracking, 0, 0, 65U, 50U,  0);
+	create_task(taskSerialRx, 0, 0, 65U, 100U,  0);
+	create_task(taskTracking, 0, 0, 65U, 100U,  0);
 
 	init_timer(1000U);	//!< \Set TIMER1_COMPA interrupt to tick every 80,000 clock cycles.
 
@@ -132,22 +134,22 @@ void taskSensor(void *p)
 {
 	while(1)
 	{
-		thermalDataPtr = mesure_thermal(thermal_Buff, THERMAL_BUFF_SIZE - 1) ;			//<! \Mesure of the thermal
-		
-		/*** TEST ADC CHANNEL 0 ***/
-		adcResultCh0 = adc_read(ADC_CH_IR_RIGHT);
-		
-		/*** TEST IR SENSOR ***/
-		distanceIrRight = lookupInfrared(adcResultCh0);
-		
-		/*** TEST ADC CHANNEL 1 ***/
-		adcResultCh1 = adc_read(ADC_CH_IR_LEFT);
-				
-		/*** TEST IR SENSOR ***/
-		distanceIRrLeft = lookupInfrared(adcResultCh1);
+		//thermalDataPtr = mesure_thermal(thermal_Buff, THERMAL_BUFF_SIZE - 1) ;			//<! \Mesure of the thermal
+		//
+		///*** TEST ADC CHANNEL 0 ***/
+		//adcResultCh0 = adc_read(ADC_CH_IR_RIGHT);
+		//
+		///*** TEST IR SENSOR ***/
+		//distanceIrRight = lookupInfrared(adcResultCh0);
+		//
+		///*** TEST ADC CHANNEL 1 ***/
+		//adcResultCh1 = adc_read(ADC_CH_IR_LEFT);
+				//
+		///*** TEST IR SENSOR ***/
+		//distanceIRrLeft = lookupInfrared(adcResultCh1);
 		
 		printf("\nt1");
-		delay_ms(50);
+		delay_ms(DELAY_TSENSOR);
 	}
 }
 
@@ -156,22 +158,22 @@ void taskSerialTx(void *p)
 {
 	while(1)
 	{
-		/*** TEST THERMAL SENSOR ***/
-		if(thermalDataPtr != NULL)
-		{
-			for (index = 0 ; index < THERMAL_TP_SIZE-1 ; index++)
-			{
-			printf(" %d", thermalDataPtr[index]);
-			}
-			printf("\r\n");
-		}
-		else
-		{
-			return(-1);
-			printf("\r\n thermal error ...");
-		}
-		
-		printf("\r\n%d\t%d\t%d\t%d",adcResultCh0, adcResultCh1, distanceIrRight, distanceIRrLeft);
+		///*** TEST THERMAL SENSOR ***/
+		//if(thermalDataPtr != NULL)
+		//{
+			//for (index = 0 ; index < THERMAL_TP_SIZE-1 ; index++)
+			//{
+			//printf(" %d", thermalDataPtr[index]);
+			//}
+			//printf("\r\n");
+		//}
+		//else
+		//{
+			//return(-1);
+			//printf("\r\n thermal error ...");
+		//}
+		//
+		//printf("\r\n%d\t%d\t%d\t%d",adcResultCh0, adcResultCh1, distanceIrRight, distanceIRrLeft);
 		
 		/*** TEST FORMAT PROTOCOL ***/
 		//Frame = formatProtocol(THERMAL_SENSOR, thermalDataPtr, NBR_DATA);
@@ -189,7 +191,7 @@ void taskSerialTx(void *p)
 		//uart_putchar(Frame.eb);
 				
 		printf("\nt2");
-		delay_ms(100);
+		delay_ms(DELAY_TSERIALTX);
 	}
 }
 
@@ -200,14 +202,38 @@ void taskSerialRx(void *p)
 {
 	while(1)
 	{
-		x = uart_getchar();
-		delay_ms(1);
+		while(x = uart_getchar())
+		{
+			if(x == 'o')
+			{
+				/*** TEST ADC CHANNEL 0 ***/
+				adcResultCh0 = adc_read(ADC_CH_IR_RIGHT);
+						
+				/*** TEST IR SENSOR ***/
+				distanceIrRight = lookupInfrared(adcResultCh0);
+						
+				/*** TEST ADC CHANNEL 1 ***/
+				adcResultCh1 = adc_read(ADC_CH_IR_LEFT);
+						
+				/*** TEST IR SENSOR ***/
+				distanceIRrLeft = lookupInfrared(adcResultCh1);
+						
+				printf("%d;%d;%d;%d\n" ,adcResultCh0, distanceIrRight, adcResultCh1, distanceIRrLeft);
+						
+				x = ' ';
+						
+				//printf("\n\rLog value");
+			}
+					
+		delay_ms(DELAY_TSERIALRX);
+		}
 	}
 }
 
 
 void taskTracking(void *p)
 {
+		
 	while(1)
 	{
 		///*** TEST PWM SERVO ***/
@@ -222,9 +248,28 @@ void taskTracking(void *p)
 		//pos = -90;
 		//}
 		
-		if(x == 'o')
-		printf("OK\n");
-		delay_ms(1);
+		//if(x == 'o')
+		//{
+			//if (flagSensorValueChanged == 1)
+			//{
+				//flagSensorValueChanged = 0;
+				//printf("%d;%d\n",distanceIRrLeft, distanceIrRight);
+			//}
+			//
+			//x = ' ';
+			//
+			//printf("\n\rLog value");
+		//}
+		//
+		//else if (x == 's')
+		//{			
+			//printf("\n\rStop log ir ...");
+			//
+			//x = ' ';
+		//}
+
+
+		delay_ms(DELAY_TTRACKING);
 	}
 }
 
