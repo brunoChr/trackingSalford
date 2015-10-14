@@ -12,6 +12,13 @@
 #include "../lib/main.h"
 
 
+
+// [+]Setup the TIMER1_COMPA interrupt - it will be our tick interrupt.
+TASK_ISR(TIMER1_COMPA_vect, tick_interrupt());
+
+volatile char x = ' ';
+
+
 /*!
  * Main function.
  *
@@ -28,10 +35,11 @@ int main(void)
 	distanceIRrLeft = 0;
 	pos = -90;
 	
-	cli(); //<! \ Interrupts should remain disabled - they will be enabled as soon as the first task starts executing.
-		
+	
 	/*** SETUP SYSTEM ***/
 	setup();				
+	
+	cli(); //<! \ Interrupts should remain disabled - they will be enabled as soon as the first task starts executing.
 	
 	clr(B,0);	
 		
@@ -47,11 +55,11 @@ int main(void)
 	set_sleep_mode(SLEEP_MODE_IDLE);
 
 	// [+]Create tasks.
-	// Priority and Buffer NEED TO BE VERIFY
-	create_task(taskSensor, 0, 0, 65U, 100U, 0);
-	create_task(taskSerialTx, 0, 0, 65U, 100U, 0);
-	create_task(taskSerialRx, 0, 0, 65U, 100U,  0);
-	create_task(taskTracking, 0, 0, 65U, 100U,  0);
+	/*** WARNING !!  Priority and Buffer NEED TO BE VERIFY ***/
+	create_task(taskSensor, 0, 0, 100U, 100U, 0);
+	create_task(taskSerialTx, 0, 0, 100U, 60U, 0);
+	create_task(taskSerialRx, 0, 0, 100U, 60U,  0);
+	create_task(taskTracking, 0, 0, 100U, 50U,  0);
 
 	init_timer(1000U);	//!< \Set TIMER1_COMPA interrupt to tick every 80,000 clock cycles.
 
@@ -134,8 +142,8 @@ void taskSensor(void *p)
 {
 	while(1)
 	{
-		//thermalDataPtr = mesure_thermal(thermal_Buff, THERMAL_BUFF_SIZE - 1) ;			//<! \Mesure of the thermal
-		//
+		thermalDataPtr = mesure_thermal(thermal_Buff, THERMAL_BUFF_SIZE - 1) ;			//<! \Mesure of the thermal
+		
 		///*** TEST ADC CHANNEL 0 ***/
 		//adcResultCh0 = adc_read(ADC_CH_IR_RIGHT);
 		//
@@ -158,21 +166,21 @@ void taskSerialTx(void *p)
 {
 	while(1)
 	{
-		///*** TEST THERMAL SENSOR ***/
-		//if(thermalDataPtr != NULL)
-		//{
-			//for (index = 0 ; index < THERMAL_TP_SIZE-1 ; index++)
-			//{
-			//printf(" %d", thermalDataPtr[index]);
-			//}
-			//printf("\r\n");
-		//}
-		//else
-		//{
-			//return(-1);
-			//printf("\r\n thermal error ...");
-		//}
-		//
+		/*** TEST THERMAL SENSOR ***/
+		if(thermalDataPtr != NULL)
+		{
+			for (index = 0 ; index < THERMAL_TP_SIZE-1 ; index++)
+			{
+			printf(" %d", thermalDataPtr[index]);
+			}
+			printf("\r\n");
+		}
+		else
+		{
+			return(-1);
+			printf("\r\n thermal error ...");
+		}
+		
 		//printf("\r\n%d\t%d\t%d\t%d",adcResultCh0, adcResultCh1, distanceIrRight, distanceIRrLeft);
 		
 		/*** TEST FORMAT PROTOCOL ***/
@@ -196,37 +204,38 @@ void taskSerialTx(void *p)
 }
 
 
-volatile char x = ' ';
-
 void taskSerialRx(void *p)
 {
 	while(1)
 	{
-		while(x = uart_getchar())
-		{
-			if(x == 'o')
-			{
-				/*** TEST ADC CHANNEL 0 ***/
-				adcResultCh0 = adc_read(ADC_CH_IR_RIGHT);
-						
-				/*** TEST IR SENSOR ***/
-				distanceIrRight = lookupInfrared(adcResultCh0);
-						
-				/*** TEST ADC CHANNEL 1 ***/
-				adcResultCh1 = adc_read(ADC_CH_IR_LEFT);
-						
-				/*** TEST IR SENSOR ***/
-				distanceIRrLeft = lookupInfrared(adcResultCh1);
-						
-				printf("%d;%d;%d;%d\n" ,adcResultCh0, distanceIrRight, adcResultCh1, distanceIRrLeft);
-						
-				x = ' ';
-						
-				//printf("\n\rLog value");
-			}
-					
-		delay_ms(DELAY_TSERIALRX);
-		}
+		//while(x = uart_getchar())
+		//{
+			//if(x == 'o')
+			//{
+				///*** TEST ADC CHANNEL 0 ***/
+				//adcResultCh0 = adc_read(ADC_CH_IR_RIGHT);
+						//
+				///*** TEST IR SENSOR ***/
+				//distanceIrRight = lookupInfrared(adcResultCh0);
+						//
+				///*** TEST ADC CHANNEL 1 ***/
+				//adcResultCh1 = adc_read(ADC_CH_IR_LEFT);
+						//
+				///*** TEST IR SENSOR ***/
+				//distanceIRrLeft = lookupInfrared(adcResultCh1);
+						//
+				//printf("%d;%d;%d;%d\n" ,adcResultCh0, distanceIrRight, adcResultCh1, distanceIRrLeft);
+						//
+				//x = ' ';
+						//
+				////printf("\n\rLog value");
+			//}
+		//
+		//
+		//}
+		
+		printf("\nt3");
+		delay_ms(DELAY_TSERIALRX);	
 	}
 }
 
@@ -268,9 +277,9 @@ void taskTracking(void *p)
 			//x = ' ';
 		//}
 
-
+		printf("\nt4");		
 		delay_ms(DELAY_TTRACKING);
-	}
+	}	
 }
 
 
@@ -302,7 +311,3 @@ uint8_t tick_interrupt()
 	increment_semaphore_by(&tick, 1);
 	return(1);
 }
-
-
-// [+]Setup the TIMER1_COMPA interrupt - it will be our tick interrupt.
-TASK_ISR(TIMER1_COMPA_vect, tick_interrupt());

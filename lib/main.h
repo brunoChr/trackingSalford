@@ -44,10 +44,10 @@
 #define ADC_CH_IR_LEFT	1					//!< \ADC channel of the left IR sensor
 #define DEBUG 0								//!< \Debug macro
 
-#define DELAY_TSENSOR		5					//!< Delay for task sensor in ms
+#define DELAY_TSENSOR		50					//!< Delay for task sensor in ms
 #define DELAY_TSERIALTX		50					//!< Delay for task serial tx in ms
 #define DELAY_TSERIALRX		50					//!< Delay for task serial rx in ms
-#define DELAY_TTRACKING		100					//!< Delay for task tracking in ms
+#define DELAY_TTRACKING		50					//!< Delay for task tracking in ms
 
 
 /*** Globalvar ***/
@@ -66,12 +66,14 @@ SHORT pos;
 BYTE * getRandom();							//!< \Return a 16 byte array fill with random number
 void setup(void);							//!< \Init function of the system
 void delay_ms(unsigned int t);				//!< \Wait ms
-void taskTracking(void *p);					//!< \Task tracking
-void taskSerialRx(void *p);					//!< \Task serial communication reception
-void taskSerialTx(void *p);					//!< \Task serial communication emission
-void taskSensor(void *p);					//!< \Task update of sensor
+
 void init_timer(unsigned int hz);
 void idle_task(void *p);
 uint8_t tick_interrupt();
+
+void taskSensor(void *p);					//!< \Task update of sensor
+void taskSerialTx(void *p);					//!< \Task serial communication emission
+void taskSerialRx(void *p);					//!< \Task serial communication reception
+void taskTracking(void *p);					//!< \Task tracking
 
 #endif /* MAIN_H_ */
