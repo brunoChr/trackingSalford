@@ -6,6 +6,7 @@
  */ 
 
 #include "../lib/infrared.h"
+#include "../lib/adc.h"
 
 /* SENSOR SHARP GP2Y0A02YK CARACTERISTIC */
 /* • Detection Accuracy @ 80 cm: ±10 cm	*/
@@ -121,19 +122,65 @@ UINT lookupInfrared(UINT adcResul)
 }
 
 
-/*** WARNING : VALUES NEED TO BE VERIFIED ***/
-/* Sharp GP2Y0A02YK IR Range Sensor - 20 cm to 150 cm */
-/*int sharp_IR_interpret_GP2Y0A02YK(int value)
+
+/*** WARNING ! SORTING NOT OPTIMIZED, LOOK LECTURE ON SORTING ***/
+
+/*! \fn UINT lookupInfrared(UINT indexLut) 
+ *  \brief Acquire IR, sort, apply median and average
+ *  \param 
+ *  \return Clean IR acquisition
+ */
+UINT readInfrared(BYTE adcPin)
 {
-	return 1904.5*pow(value,-.89);
-}*/
-
-
-/*** mV -> centimeters based on log regression
-
-float gp2y0a02ykGetCentimerDistanceForTension(float milliVolt) {
-	// This value are based on Excel logarithm regression!
-	return -47.82f * log(milliVolt) + 352.11f;
+	UINT adcResultCh;
+	UINT  distanceIR;
+	
+	//<! \read multiple values and sort them to take the mode (median)
+	UINT sortedValues[NUM_READS];
+	UINT i;
+	
+	for(i=0; i < NUM_READS; i++)
+	{		
+		adcResultCh = adc_read(adcPin);
+		int j;
+		
+		if((adcResultCh < sortedValues[0]) || (i == 0))
+		{
+			j = 0; //<! \insert at first position
+		}
+		else
+		{
+			for(j = 1; j < i; j++)
+			{
+				if((sortedValues[j-1] <= adcResultCh) && (sortedValues[j] >= adcResultCh))
+				{
+					//<! \j is insert position
+					break;
+				}
+			}
+		}
+		for(int k = i; k > j; k--)
+		{
+			//<! \move all values higher than current reading up one position
+			sortedValues[k] = sortedValues[k-1];
+		}
+		
+		sortedValues[j] = adcResultCh; //<! \insert current reading
+	}
+	
+	//<! \return scaled mode of 10 values
+	UINT returnval = 0;
+	
+	for(int i = (NUM_READS/2) - 5; i < ((NUM_READS/2) + 5); i++)
+	{
+		returnval += sortedValues[i];
+	}
+	
+	returnval = (returnval/10);
+	
+	return lookupInfrared(returnval);
 }
-***/
+
+
+
 

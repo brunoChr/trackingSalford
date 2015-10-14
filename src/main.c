@@ -33,6 +33,7 @@
 #include "../lib/infrared.h"
 #include "../lib/serialData.h"
 #include "../lib/tracking.h"
+#include "../lib/lcd.h"
 
 
 #define TAILLE_DATA 4*4		//!< \Matrix temp sensor
@@ -54,6 +55,17 @@ BYTE * getRandom();		//!< \Return a 16 byte array fill with random number
 void setup(void);		//!< \Init function of the system
 
 
+void my_itoa(int value, BYTE *buf, int base){
+	
+	int i = 30;
+	
+	buf = "";
+	
+	for(; value && i ; --i, value /= base) buf = "0123456789abcdef"[value % base] + buf;
+	
+}
+
+
 /*!
  * Main function.
  *
@@ -66,6 +78,7 @@ int main(void)
 	BYTE *dataSerial;
 	serialProtocol Frame;
 	BYTE index;
+	BYTE lcdBuffer[24];
 	//SHORT pos;
 	
 	/*** VARIABLE INITIALISATION ***/
@@ -75,6 +88,8 @@ int main(void)
 	distanceIRrLeft = 0;
 	//pos = -90;
 	
+	clr(B,0);
+	 
 	//_delay_ms(1000);
 		
 	/*** SETUP SYSTEM ***/
@@ -85,8 +100,10 @@ int main(void)
 	/*** WAITING ***/
 	#if DEBUG
 	#else
-	_delay_ms(1000);
+	_delay_ms(2000);
 	#endif
+	
+	LCD_command(LCD_CLR); 
 	
 	/*** INFINITE LOOP ***/
 	while(1)
@@ -94,43 +111,54 @@ int main(void)
 		
 		ATOMIC_BLOCK(ATOMIC_FORCEON)
 		{
-		
-		thermalDataPtr = mesure_thermal(thermal_Buff, THERMAL_BUFF_SIZE - 1) ;
+			distanceIrRight = readInfrared(ADC_CH_IR_RIGHT);
 			
-		/*** TEST THERMAL SENSOR ***/
-		if(thermalDataPtr != NULL)
-		{
-			//for (index = 0 ; index < THERMAL_TP_SIZE-1 ; index++)
-			//{
-				//printf(" %d", thermalDataPtr[index]);
-			//}		
-			//printf("\r\n");
-		}
+			LED(distanceIrRight % 256);
+			my_itoa(distanceIrRight, lcdBuffer, 10);
+			LCD_write(lcdBuffer);
+
+			LCD_command(LCD_CLR); 
+			printf("\n\r%d", distanceIrRight);
+			
+		//
+		//thermalDataPtr = mesure_thermal(thermal_Buff, THERMAL_BUFF_SIZE - 1) ;
+			//
+		///*** TEST THERMAL SENSOR ***/
+		//if(thermalDataPtr != NULL)
+		//{
+			////for (index = 0 ; index < THERMAL_TP_SIZE-1 ; index++)
+			////{
+				////printf(" %d", thermalDataPtr[index]);
+			////}		
+			////printf("\r\n");
+		//}
+		//
+		//else
+		//{
+			//return(-1);
+			////printf("\r\n thermal error ...");
+		//}
 		
-		else
-		{
-			return(-1);
-			//printf("\r\n thermal error ...");
-		}
+		///*** TEST ADC CHANNEL 0 ***/
+		//adcResultCh0 = adc_read(ADC_CH_IR_RIGHT);
+		//
+		///*** TEST IR SENSOR ***/
+		//distanceIrRight = lookupInfrared(adcResultCh0);
+		//
+		///*** TEST ADC CHANNEL 1 ***/
+		//adcResultCh1 = adc_read(ADC_CH_IR_LEFT);
+				//
+		///*** TEST IR SENSOR ***/
+		//distanceIRrLeft = lookupInfrared(adcResultCh1);
 		
-		/*** TEST ADC CHANNEL 0 ***/
-		adcResultCh0 = adc_read(ADC_CH_IR_RIGHT);
 		
-		/*** TEST IR SENSOR ***/
-		distanceIrRight = lookupInfrared(adcResultCh0);
-		
-		/*** TEST ADC CHANNEL 1 ***/
-		adcResultCh1 = adc_read(ADC_CH_IR_LEFT);
-				
-		/*** TEST IR SENSOR ***/
-		distanceIRrLeft = lookupInfrared(adcResultCh1);
 		
 		}
 		
 		
 		/* PRINT ADC VALUES */
 		//printf("\r\n%d %f",adcResultCh0, adc2MilliVolt(adcResultCh0));
-		printf("\r\n%d\t%d\t%d\t%d",adcResultCh0, adcResultCh1, distanceIrRight, distanceIRrLeft);
+		//printf("\r\n%d\t%d\t%d\t%d",adcResultCh0, adcResultCh1, distanceIrRight, distanceIRrLeft);
 		//printf("%d\t%d\r",distanceIrRight, distanceIRrLeft);
 		//uart_putchar(distanceIrRight);
 		//uart_putchar(distanceIRrLeft);
@@ -150,7 +178,7 @@ int main(void)
 		//uart_putchar(Frame.cn);
 		//uart_putchar(Frame.eb);
 
-		
+
 		///*** TEST PWM SERVO ***/
 		
 		//if(pos < 80)
@@ -163,10 +191,9 @@ int main(void)
 			//pos = -90;	
 		//}
 		
-		#if DEBUG
-		#else
-		_delay_ms(1000);
-		#endif
+		_delay_ms(100);
+		LCD_command(LCD_CLR); 
+		
 		
 		
 		/*** TEST PWM SERVO **		
@@ -183,12 +210,10 @@ int main(void)
 		*/
 		//cli();
 		/* Test Tracking */
-		tracking(distanceIrRight, distanceIRrLeft);
-		_delay_ms(200);
-			
+		//tracking(distanceIrRight, distanceIRrLeft);
+		
  		}
 		 
-	 
 	return(0);
 }
 
@@ -239,7 +264,12 @@ void setup(void)
 	//servo_init();
 	adc_init();
 	//pwm_init();
-	//LCD_init();
+	LCD_init();
+	
+	LCD_write("Tracking");
+	LCD_command(LCD_LINE2 | 0); // move cursor  to row 2, position 5
+	LCD_write("Team WTF");
+	
 	if(!twi_init(100000)) // Init I2C  with 100KHz bitrate.
 	{
 		printf("\nError in initiating I2C interface.");

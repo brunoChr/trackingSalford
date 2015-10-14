@@ -114,6 +114,9 @@
     <Compile Include="lib\kalmanFilter.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="lib\lcd.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="lib\port.h">
       <SubType>compile</SubType>
     </Compile>
@@ -145,6 +148,9 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\kalmanFilter.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\lcd.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\main.c">
