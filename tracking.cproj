@@ -114,6 +114,7 @@
     <Compile Include="lib\kalmanFilter.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="lib\main.h">
     <Compile Include="lib\lcd.h">
       <SubType>compile</SubType>
     </Compile>
@@ -121,6 +122,9 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="lib\pwm.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="lib\rtos.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="lib\serialData.h">
@@ -160,6 +164,9 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\pwm.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\rtos.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\serialData.c">

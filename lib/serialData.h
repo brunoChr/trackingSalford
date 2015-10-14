@@ -1,7 +1,7 @@
-/*
- * \file serialData.h
- *
- * Created: 05/10/2015 11:19:45
+/*!
+ *	\file serialData.h
+ *	\brief 
+ *  Created: 05/10/2015 11:19:45
  *  Author: b.christol
  */ 
 
