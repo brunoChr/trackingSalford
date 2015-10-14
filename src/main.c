@@ -12,6 +12,7 @@
 #include "../lib/main.h"
 #include "../lib/tracking.h"
 #include "../lib/lcd.h"
+
 /*** WARNING MACRO USE FOR DEBUGGING, WILL BE DELETE ***/
 #define DEBUG 0
 #define LCD	  0
@@ -46,23 +47,23 @@ int main(void)
 {
 	char x = ' ';
 	BYTE lcdBuffer[24];
-	//SHORT pos;
-	
+
 	/*** VARIABLE INITIALISATION ***/
 	adcResultCh0 = 0;
 	adcResultCh1 = 0;
 	distanceIrRight = 0;
 	distanceIRrLeft = 0;
 	
-	
-	clr(B,0);
-	
+
 	/*** SETUP SYSTEM ***/
 	setup();				
 	
-	#if UART
+	clr(B,0);
 	
+	#if UART
+	printf("\n~ Board Ready ~\n");
 	#endif
+		
 		
 	/*** WAITING ***/
 	#if DEBUG
@@ -74,39 +75,14 @@ int main(void)
 	LCD_command(LCD_CLR); 
 	#endif
 	
-			distanceIrRight = readInfrared(ADC_CH_IR_RIGHT);
-			distanceIRrLeft = readInfrared(ADC_CH_IR_LEFT);
-			//my_itoa(distanceIrRight, lcdBuffer, 10);
-			//LCD_write(lcdBuffer);
-			//
-			//LCD_command(LCD_CLR); 
-			//if(thermalDataPtr != NULL)
-				////{
-					////printf(" %d", thermalDataPtr[index]);
-				////}		
-				////printf("\r\n");
-			//}
-			//
-			//else
-			//{
-				//return(-1);
-				////printf("\r\n thermal error ...");
 
 	// [+]The idle task sleeps the CPU  -  set the sleep mode to IDLE,
 	// as we need the sleep to be interruptable by the tick interrupt.
 	set_sleep_mode(SLEEP_MODE_IDLE);
-			//
-			///*** TEST IR SENSOR ***/
-			//distanceIrRight = lookupInfrared(adcResultCh0);
-			//
-			///*** TEST ADC CHANNEL 1 ***/
-			//adcResultCh1 = adc_read(ADC_CH_IR_LEFT);
-					//
-			///*** TEST IR SENSOR ***/
-			//distanceIRrLeft = lookupInfrared(adcResultCh1);
-		#if UART
-		printf("\n%d;%d", distanceIrRight, distanceIRrLeft);
-		#endif
+
+	#if UART
+	printf("\n%d;%d", distanceIrRight, distanceIRrLeft);
+	#endif
 
 	// [+]Create tasks.
 	/*** WARNING !!  Priority and Buffer NEED TO BE VERIFY ***/
@@ -114,22 +90,16 @@ int main(void)
 	create_task(taskSerialTx, 0, 0, 100U, 60U, 0);
 	create_task(taskSerialRx, 0, 0, 100U, 60U,  0);
 	create_task(taskTracking, 0, 0, 100U, 50U,  0);
-		_delay_ms(100);
-		#endif
-		
-		#if LCD
-		LCD_command(LCD_CLR);
-		#endif 
+	
+	#if LCD
+	LCD_command(LCD_CLR);
+	#endif
 
 	init_timer(1000U);	//!< \Set TIMER1_COMPA interrupt to tick every 80,000 clock cycles.
 		
-		_delay_ms(500);
-		#endif
 
 	// [+]Start the RTOS - note that this function will never return.
 	task_switcher_start(idle_task, 0, 65U, 80U);
-		//tracking(distanceIrRight, distanceIRrLeft);
-	
 	
 	/*** NO INFINITE LOOP IN MAIN : RTOS RUN ***/
 		 	 
@@ -200,8 +170,6 @@ void setup(void)
 		while(1);
 	}
 	
-	printf("\n~ Board Ready ~\n");
-	
 	/*** END OF INIT PART ***/
 }
 
@@ -217,18 +185,14 @@ void taskSensor(void *p)
 	while(1)
 	{
 		thermalDataPtr = mesure_thermal(thermal_Buff, THERMAL_BUFF_SIZE - 1) ;			//<! \Mesure of the thermal
+
+		distanceIrRight = readInfrared(ADC_CH_IR_RIGHT);
+		distanceIRrLeft = readInfrared(ADC_CH_IR_LEFT);
 		
-		///*** TEST ADC CHANNEL 0 ***/
-		//adcResultCh0 = adc_read(ADC_CH_IR_RIGHT);
+		//my_itoa(distanceIrRight, lcdBuffer, 10);
+		//LCD_write(lcdBuffer);
 		//
-		///*** TEST IR SENSOR ***/
-		//distanceIrRight = lookupInfrared(adcResultCh0);
-		//
-		///*** TEST ADC CHANNEL 1 ***/
-		//adcResultCh1 = adc_read(ADC_CH_IR_LEFT);
-				//
-		///*** TEST IR SENSOR ***/
-		//distanceIRrLeft = lookupInfrared(adcResultCh1);
+		//LCD_command(LCD_CLR);
 		
 		printf("\nt1");
 		delay_ms(DELAY_TSENSOR);
