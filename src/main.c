@@ -96,7 +96,6 @@ int main(void)
 	#endif
 
 	init_timer(1000U);	//!< \Set TIMER1_COMPA interrupt to tick every 80,000 clock cycles.
-	
 
 	// [+]Start the RTOS - note that this function will never return.
 	task_switcher_start(idle_task, 0, 65U, 80U);
@@ -280,11 +279,13 @@ void taskSerialRx(void *p)
 
 void taskTracking(void *p)
 {
-		
+	pos = 90;
+	int newPos = 0;
+	
 	while(1)
 	{
-		tracking(distanceIrRight,distanceIRrLeft,pos);
-		
+		newPos = tracking(pos);
+		pos = newPos;
 		///*** TEST PWM SERVO ***/
 				
 		//if(pos < 80)

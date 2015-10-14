@@ -60,7 +60,7 @@ int info_tracking(UINT distanceIrRight, UINT distanceIrLeft)
 	return 0;
 }
 
-unsigned int tracking(UINT distanceIrRight, UINT distanceIrLeft, int position)
+unsigned int tracking(int position)
 {
 	/*! \fn unsigned int tracking(UINT distanceIrRight, UINT distanceIrLeft, int position)
 	*	\brief follow the target according to the information given by the function "info_tracking"
@@ -70,9 +70,13 @@ unsigned int tracking(UINT distanceIrRight, UINT distanceIrLeft, int position)
 	*	\exception
 	*	\return the new position of the servo, in degrees
 	*/
+	UINT distanceIrRight, distanceIrLeft;
+	
+	distanceIrRight = readInfrared(0);
+	distanceIRrLeft = readInfrared(1);
+	
 	switch(info_tracking(distanceIrRight, distanceIrLeft))
 	{
-		
 		case OUT_OF_RANGE:
 			pwm_positionCentrale();
 			return 90;
