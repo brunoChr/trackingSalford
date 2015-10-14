@@ -70,12 +70,23 @@ void pwm_init()
 	*/
 
 	ICR3 = 19999;
+	//ICR3 = 2500;
 
 	TCCR3B |= (1 << WGM33);
 	TCCR3B |= (1 << WGM32);
 	TCCR3A |= (1 << WGM31);
 	TCCR3A |= (0 << WGM30);
 	
+	/*
+	CSn2	CSn1	CSn0	Description
+	0		0		0		No clock source. (Timer/Counter stopped)
+	0		0		1		clkI/O/1 (No prescaling
+	0		1		0		clkI/O/8 (From prescaler)
+	0		1		1		clkI/O/64 (From prescaler)
+	1		0		0		clkI/O/256 (From prescaler)
+	1		0		1		clkI/O/1024 (From prescaler)
+	1		1		0		External clock source on Tn pin. Clock on falling edge
+	1		1		1		External clock source on Tn pin. Clock on rising edge*/
 	
 	/*Clk (Prescaler : 8)*/
 	TCCR3B |= (0 << CS32);
