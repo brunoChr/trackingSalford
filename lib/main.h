@@ -32,6 +32,7 @@
 #include "../lib/infrared.h"
 #include "../lib/serialData.h"
 #include "../lib/rtos.h"
+#include "../lib/tracking.h"
 
 #include <util/delay.h>
 #include <util/atomic.h>
