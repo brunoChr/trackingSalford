@@ -115,7 +115,6 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="lib\main.h">
-    <Compile Include="lib\lcd.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="lib\port.h">
@@ -131,9 +130,6 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="lib\thermal.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="lib\tracking.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="lib\twi.h">
@@ -154,9 +150,6 @@
     <Compile Include="src\kalmanFilter.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\lcd.c">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="src\main.c">
       <SubType>compile</SubType>
     </Compile>
@@ -173,9 +166,6 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\thermal.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\tracking.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\twi.c">
