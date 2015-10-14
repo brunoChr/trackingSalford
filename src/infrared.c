@@ -127,22 +127,23 @@ UINT lookupInfrared(UINT adcResul)
 
 /*! \fn UINT lookupInfrared(UINT indexLut) 
  *  \brief Acquire IR, sort, apply median and average
+ *		   mode filter = median filter + average filter	
  *  \param 
  *  \return Clean IR acquisition
  */
 UINT readInfrared(BYTE adcPin)
 {
 	UINT adcResultCh;
-	UINT  distanceIR;
+	//UINT  distanceIR; // NOT USES AT THE TIME
 	
 	//<! \read multiple values and sort them to take the mode (median)
-	UINT sortedValues[NUM_READS];
-	UINT i;
+	UINT sortedValues[NUM_READS_ADC];
 	
-	for(i=0; i < NUM_READS; i++)
+	UINT i, j;	//<! \i for number af acquisition; j for sorting
+		
+	for(i=0; i < NUM_READS_ADC; i++)		//<! \Loop for acquisition (10 ~= 400ms) TO VERIFIED
 	{		
-		adcResultCh = adc_read(adcPin);
-		int j;
+		adcResultCh = adc_read(adcPin);		//<! \Realize the acquisition								
 		
 		if((adcResultCh < sortedValues[0]) || (i == 0))
 		{
@@ -159,6 +160,7 @@ UINT readInfrared(BYTE adcPin)
 				}
 			}
 		}
+		
 		for(int k = i; k > j; k--)
 		{
 			//<! \move all values higher than current reading up one position
@@ -168,15 +170,16 @@ UINT readInfrared(BYTE adcPin)
 		sortedValues[j] = adcResultCh; //<! \insert current reading
 	}
 	
-	//<! \return scaled mode of 10 values
+	
+	//<! \return scaled mode of 10 values; TO BE VERIFIED
 	UINT returnval = 0;
 	
-	for(int i = (NUM_READS/2) - 5; i < ((NUM_READS/2) + 5); i++)
+	for(int i = (NUM_READS_ADC/2) - 5; i < ((NUM_READS_ADC/2) + 5); i++)
 	{
-		returnval += sortedValues[i];
+		returnval += sortedValues[i];	//<! \Do the sum for average
 	}
 	
-	returnval = (returnval/10);
+	returnval = (returnval/10);		//<! \Do the division for average, WARNING ! MAYBE USE A DEFINE
 	
 	return lookupInfrared(returnval);
 }
