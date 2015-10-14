@@ -40,8 +40,12 @@
 #define ADC_CH_IR_RIGHT	0	//!< \ADC channel of the right IR sensor
 #define ADC_CH_IR_LEFT	1	//!< \ADC channel of the left IR sensor
 
-#define DEBUG 0
 
+/*** WARNING MACRO USE FOR DEBUGGING, WILL BE DELETE ***/
+#define DEBUG 0
+#define LCD	  0
+#define UART  1	
+#define PWM   0
 
 /*** Globalvar ***/
 
@@ -86,16 +90,16 @@ int main(void)
 	adcResultCh1 = 0;
 	distanceIrRight = 0;
 	distanceIRrLeft = 0;
-	//pos = -90;
+	
 	
 	clr(B,0);
-	 
-	//_delay_ms(1000);
 		
 	/*** SETUP SYSTEM ***/
 	setup();
 	
+	#if UART
 	printf("\n~ Board Ready ~\n");
+	#endif
 	
 	/*** WAITING ***/
 	#if DEBUG
@@ -103,7 +107,9 @@ int main(void)
 	_delay_ms(2000);
 	#endif
 	
+	#if LCD
 	LCD_command(LCD_CLR); 
+	#endif
 	
 	/*** INFINITE LOOP ***/
 	while(1)
@@ -112,50 +118,51 @@ int main(void)
 		ATOMIC_BLOCK(ATOMIC_FORCEON)
 		{
 			distanceIrRight = readInfrared(ADC_CH_IR_RIGHT);
+			distanceIRrLeft = readInfrared(ADC_CH_IR_LEFT);
 			
-			LED(distanceIrRight % 256);
-			my_itoa(distanceIrRight, lcdBuffer, 10);
-			LCD_write(lcdBuffer);
-
-			LCD_command(LCD_CLR); 
-			printf("\n\r%d", distanceIrRight);
-			
-		//
-		//thermalDataPtr = mesure_thermal(thermal_Buff, THERMAL_BUFF_SIZE - 1) ;
+			//LED(distanceIrRight % 256);
+			//my_itoa(distanceIrRight, lcdBuffer, 10);
+			//LCD_write(lcdBuffer);
 			//
-		///*** TEST THERMAL SENSOR ***/
-		//if(thermalDataPtr != NULL)
-		//{
-			////for (index = 0 ; index < THERMAL_TP_SIZE-1 ; index++)
-			////{
-				////printf(" %d", thermalDataPtr[index]);
-			////}		
-			////printf("\r\n");
-		//}
-		//
-		//else
-		//{
-			//return(-1);
-			////printf("\r\n thermal error ...");
-		//}
-		
-		///*** TEST ADC CHANNEL 0 ***/
-		//adcResultCh0 = adc_read(ADC_CH_IR_RIGHT);
-		//
-		///*** TEST IR SENSOR ***/
-		//distanceIrRight = lookupInfrared(adcResultCh0);
-		//
-		///*** TEST ADC CHANNEL 1 ***/
-		//adcResultCh1 = adc_read(ADC_CH_IR_LEFT);
+			//LCD_command(LCD_CLR); 
+			
+			//
+			//thermalDataPtr = mesure_thermal(thermal_Buff, THERMAL_BUFF_SIZE - 1) ;
 				//
-		///*** TEST IR SENSOR ***/
-		//distanceIRrLeft = lookupInfrared(adcResultCh1);
+			///*** TEST THERMAL SENSOR ***/
+			//if(thermalDataPtr != NULL)
+			//{
+				////for (index = 0 ; index < THERMAL_TP_SIZE-1 ; index++)
+				////{
+					////printf(" %d", thermalDataPtr[index]);
+				////}		
+				////printf("\r\n");
+			//}
+			//
+			//else
+			//{
+				//return(-1);
+				////printf("\r\n thermal error ...");
+			//}
 		
-		
+			///*** TEST ADC CHANNEL 0 ***/
+			//adcResultCh0 = adc_read(ADC_CH_IR_RIGHT);
+			//
+			///*** TEST IR SENSOR ***/
+			//distanceIrRight = lookupInfrared(adcResultCh0);
+			//
+			///*** TEST ADC CHANNEL 1 ***/
+			//adcResultCh1 = adc_read(ADC_CH_IR_LEFT);
+					//
+			///*** TEST IR SENSOR ***/
+			//distanceIRrLeft = lookupInfrared(adcResultCh1);
 		
 		}
 		
-		
+		#if UART
+		printf("\n%d;%d", distanceIrRight, distanceIRrLeft);
+		#endif
+					
 		/* PRINT ADC VALUES */
 		//printf("\r\n%d %f",adcResultCh0, adc2MilliVolt(adcResultCh0));
 		//printf("\r\n%d\t%d\t%d\t%d",adcResultCh0, adcResultCh1, distanceIrRight, distanceIRrLeft);
@@ -191,12 +198,19 @@ int main(void)
 			//pos = -90;	
 		//}
 		
+		#if DEBUG
+		#else
 		_delay_ms(100);
-		LCD_command(LCD_CLR); 
+		#endif
+		
+		#if LCD
+		LCD_command(LCD_CLR);
+		#endif 
 		
 		
 		
-		/*** TEST PWM SERVO **		
+		/*** TEST PWM SERVO ***/
+		#if PWM
 		pwm_setPosition(45);
 		_delay_ms(500);
 		pwm_setPosition(90);
@@ -207,7 +221,8 @@ int main(void)
 		_delay_ms(500);
 		pwm_setPosition(10);
 		_delay_ms(500);
-		*/
+		#endif
+		
 		//cli();
 		/* Test Tracking */
 		//tracking(distanceIrRight, distanceIRrLeft);
@@ -263,12 +278,17 @@ void setup(void)
 	uart_init(9600);
 	//servo_init();
 	adc_init();
-	//pwm_init();
-	LCD_init();
 	
+	#if PWM
+	pwm_init();
+	#endif
+	
+	#if LCD
+	LCD_init();
 	LCD_write("Tracking");
 	LCD_command(LCD_LINE2 | 0); // move cursor  to row 2, position 5
 	LCD_write("Team WTF");
+	#endif
 	
 	if(!twi_init(100000)) // Init I2C  with 100KHz bitrate.
 	{
