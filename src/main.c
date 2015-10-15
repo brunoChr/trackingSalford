@@ -17,15 +17,40 @@
 #define DEBUG 0
 #define LCD	  0
 #define UART  1	
-#define PWM   1
-
+#define PWM   0
 
 
 // [+]Setup the TIMER1_COMPA interrupt - it will be our tick interrupt.
 TASK_ISR(TIMER1_COMPA_vect, tick_interrupt());
 
+
+/*** GLOBAL VARIABLE, MOVE TO .h ***/
 volatile char x = ' ';
 
+
+enum ReceiveCmd
+{
+	CMD_START = '#',
+	CMD_IRR = '1',
+	CMD_IRL = '2',
+	CMD_THERM = '3',
+	CMD_SERVO = '4',	
+};
+
+
+typedef struct flagReceive
+{
+	BOOL start;
+	
+} flagReceive;
+
+
+flagReceive flagRx;
+//enum ReceiveCmd RxCmd;
+
+BOOL flagSensorValueChanged;
+//BOOL flagReceiveValue;
+BYTE bufferSerialRx[32];
 
 void my_itoa(int value, BYTE *buf, int base){
 	
@@ -81,21 +106,21 @@ int main(void)
 	set_sleep_mode(SLEEP_MODE_IDLE);
 
 	#if UART
-	printf("\n%d;%d", distanceIrRight, distanceIRrLeft);
+	//printf("\n%d;%d", distanceIrRight, distanceIRrLeft);
 	#endif
 
 	// [+]Create tasks.
 	/*** WARNING !!  Priority and Buffer NEED TO BE VERIFY ***/
-	create_task(taskSensor, 0, 0, 100U, 100U, 0);
-	create_task(taskSerialTx, 0, 0, 100U, 60U, 0);
-	create_task(taskSerialRx, 0, 0, 100U, 60U,  0);
-	create_task(taskTracking, 0, 0, 100U, 50U,  0);
+	create_task(taskSensor, 0, 0, 400U, 100U, 0);		//<! \Size of stack & Priority
+	create_task(taskSerialTxRx, 0, 0, 400U, 60U, 0);
+	create_task(taskSerialCmd, 0, 0, 400U, 60U,  0);
+	create_task(taskTracking, 0, 0, 400U, 40U,  0);
 	
 	#if LCD
 	LCD_command(LCD_CLR);
 	#endif
 
-	init_timer(1000U);	//!< \Set TIMER1_COMPA interrupt to tick every 80,000 clock cycles.
+	init_timer(5000U);	//!< \Set TIMER1_COMPA interrupt to tick every 80,000 clock cycles.
 
 	// [+]Start the RTOS - note that this function will never return.
 	task_switcher_start(idle_task, 0, 65U, 80U);
@@ -181,67 +206,121 @@ void delay_ms(unsigned int t)
 
 void taskSensor(void *p)
 {
-	while(1)
+	while(1)	
 	{
 		thermalDataPtr = mesure_thermal(thermal_Buff, THERMAL_BUFF_SIZE - 1) ;			//<! \Mesure of the thermal
-
 		distanceIrRight = readInfrared(ADC_CH_IR_RIGHT);
 		distanceIRrLeft = readInfrared(ADC_CH_IR_LEFT);
-		
 		//my_itoa(distanceIrRight, lcdBuffer, 10);
 		//LCD_write(lcdBuffer);
 		//
 		//LCD_command(LCD_CLR);
 		
-		printf("\nt1");
+		flagSensorValueChanged = 0;
+		
+		//printf("\ntSensor");
 		delay_ms(DELAY_TSENSOR);
 	}
 }
 
 
-void taskSerialTx(void *p)
+void taskSerialTxRx(void *p)
 {
 	while(1)
-	{
-		/*** TEST THERMAL SENSOR ***/
-		if(thermalDataPtr != NULL)
-		{
-			for (index = 0 ; index < THERMAL_TP_SIZE-1 ; index++)
-			{
-			printf(" %d", thermalDataPtr[index]);
-			}
-			printf("\r\n");
-		}
-		else
-		{
-			return(-1);
-			printf("\r\n thermal error ...");
-		}
-		
-		//printf("\r\n%d\t%d\t%d\t%d",adcResultCh0, adcResultCh1, distanceIrRight, distanceIRrLeft);
-		
-		/*** TEST FORMAT PROTOCOL ***/
-		//Frame = formatProtocol(THERMAL_SENSOR, thermalDataPtr, NBR_DATA);
-		//
-		//uart_putchar(Frame.sb);
-		//uart_putchar(Frame.id);
-		//
-		//for (index = 0; index < NBR_DATA; index++)
-		//{
-		//uart_putchar(Frame.data[index]);
-		//}
-		//
-		//uart_putchar(Frame.cs);
-		//uart_putchar(Frame.cn);
-		//uart_putchar(Frame.eb);
+	{	
 				
-		printf("\nt2");
+		if(flagSensorValueChanged == 1)
+		{			
+			/*** TEST THERMAL SENSOR ***/
+			if(thermalDataPtr != NULL)
+			{
+				/*** WARNING ! PRINTF JUST TO SEE IN PUTTY, WILL BE CHANGED TO uart_putchar ***/
+				printf("\r\n");
+				for (index = 0 ; index < THERMAL_TP_SIZE-1 ; index++)
+				{
+				printf(" %d", thermalDataPtr[index]);
+				}
+				printf("\r\n");
+			}
+			else
+			{
+				return(-1);
+				printf("\r\n thermal error ...");
+			}
+		
+			//printf("\r\n%d\t%d\t%d\t%d",adcResultCh0, adcResultCh1, distanceIrRight, distanceIRrLeft);
+		
+			/*** TEST FORMAT PROTOCOL ***/
+			//Frame = formatProtocol(THERMAL_SENSOR, thermalDataPtr, NBR_DATA);
+			//
+			//uart_putchar(Frame.sb);
+			//uart_putchar(Frame.id);
+			//
+			//for (index = 0; index < NBR_DATA; index++)
+			//{
+			//uart_putchar(Frame.data[index]);
+			//}
+			//
+			//uart_putchar(Frame.cs);
+			//uart_putchar(Frame.cn);
+			//uart_putchar(Frame.eb);
+			
+			flagSensorValueChanged = 0;	
+		}
+		
+		if(x = uart_getchar())
+		{
+			if(x == CMD_START)
+			{	
+				flagRx.start = 1;
+				printf("\r\nCmd Start");
+			}
+			
+			x = ' ';
+		}
+		
+		if(flagRx.start)
+		{
+			printf("\r\nStart");
+			
+			//x = ' ';
+			if (x = uart_getchar())
+			{
+				if (x == CMD_IRL)
+				{
+					uart_putchar()
+					printf("\r\nCMD IRL");
+					flagRx.start = 0;
+					x = ' ';
+				}
+				else if(x == CMD_IRR)
+				{
+					printf("\r\nCMD IRR");
+					flagRx.start = 0;
+					x = ' ';
+				}
+				else if(x == CMD_THERM)
+				{
+					printf("\r\nCMD THERM");
+					flagRx.start = 0;
+					x = ' ';
+				}
+				else if(x == CMD_SERVO)
+				{
+					printf("\r\nCMD SERVO");
+					flagRx.start = 0;
+					x = ' ';
+				}
+			}
+		}
+		
+		printf("\ntRxTx");
 		delay_ms(DELAY_TSERIALTX);
 	}
 }
 
 
-void taskSerialRx(void *p)
+void taskSerialCmd(void *p)
 {
 	while(1)
 	{
@@ -271,7 +350,7 @@ void taskSerialRx(void *p)
 		//
 		//}
 		
-		printf("\nt3");
+		//printf("\ntCmd");
 		delay_ms(DELAY_TSERIALRX);	
 	}
 }
@@ -326,7 +405,7 @@ void taskTracking(void *p)
 			//x = ' ';
 		//}
 
-		printf("\nt4");		
+		printf("\ntTrack");		
 		delay_ms(DELAY_TTRACKING);
 	}	
 }

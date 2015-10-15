@@ -48,7 +48,7 @@
 #define DELAY_TSENSOR		50					//!< Delay for task sensor in ms
 #define DELAY_TSERIALTX		50					//!< Delay for task serial tx in ms
 #define DELAY_TSERIALRX		50					//!< Delay for task serial rx in ms
-#define DELAY_TTRACKING		50					//!< Delay for task tracking in ms
+#define DELAY_TTRACKING		500					//!< Delay for task tracking in ms
 
 
 /*** Globalvar ***/
@@ -73,8 +73,8 @@ void idle_task(void *p);
 uint8_t tick_interrupt();
 
 void taskSensor(void *p);					//!< \Task update of sensor
-void taskSerialTx(void *p);					//!< \Task serial communication emission
-void taskSerialRx(void *p);					//!< \Task serial communication reception
+void taskSerialTxRx(void *p);					//!< \Task serial communication emission
+void taskSerialCmd(void *p);					//!< \Task serial communication reception
 void taskTracking(void *p);					//!< \Task tracking
 
 #endif /* MAIN_H_ */
