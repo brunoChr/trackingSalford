@@ -60,7 +60,7 @@ UINT adcResultCh0, adcResultCh1;
 UINT  distanceIRrLeft, distanceIrRight;
 serialProtocol Frame;
 BYTE index;
-SHORT pos;
+//SHORT pos;
 
 /*** Prototype function main ***/
 

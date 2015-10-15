@@ -279,7 +279,7 @@ void taskSerialRx(void *p)
 
 void taskTracking(void *p)
 {
-	pos = 90;
+	//pos = 90;
 	int newPos = 0;
 	
 	while(1)

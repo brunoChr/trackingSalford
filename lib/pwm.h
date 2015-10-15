@@ -14,6 +14,8 @@
 #define TRUE 1
 #define FALSE 0
 
+/*** Globalvar ***/
+SHORT pos;
 
 /*** PROTOTYPE ***/
 
@@ -23,6 +25,8 @@ void pwm_rotationGauche(void);
 void pwm_rotationDroite(void);
 void pwm_positionCentrale(void);
 void pwm_setPosition(unsigned int angle);
+int pwm_getPosition();
+
 unsigned int tableDeCalcul (unsigned int angle);
 
 
