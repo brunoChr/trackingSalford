@@ -154,8 +154,29 @@ void pwm_setPosition(unsigned int angle)
 
 }
 
-int pwm_getPosition()
+unsigned int pwm_getPosition(char typeSortie)
 {
-	return pos;
+	/*! \fn unsigned int pwm_getPosition(int typeSortie)
+	*	\brief Give back the position of the servo, in degrees or in milliseconds
+	*	\param typeSortie
+	*	\param position : actual position of the servomotor, in degrees
+	*	\exception Return -1 if we ask somthing else than angle or duration
+	*	\return the new position of the servo, in degrees or milliseconds
+	*/
+	switch (typeSortie)
+	{
+		case ANGLE: //!< if the position is ask in degrees, we give back the angle position
+			return pos;
+			break;
+		
+		case DUREE_ETAT_HAUT: //!< if the position is a duration, we give back the duration of the high-state (OCR3A)
+			return tableDeCalcul(pos);
+			break;
+		
+		default:
+			return -1;
+			break;
+	}
+	return -1;
 }
 
