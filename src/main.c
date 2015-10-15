@@ -17,7 +17,7 @@
 #define DEBUG 0
 #define LCD	  0
 #define UART  1	
-#define PWM   0
+#define PWM   1
 
 
 
@@ -284,8 +284,16 @@ void taskTracking(void *p)
 	
 	while(1)
 	{
+		/*
 		newPos = tracking(pos);
 		pos = newPos;
+		*/
+		pwm_setPosition(10);
+		_delay_ms(200);
+		pwm_setPosition(90);
+		_delay_ms(200);
+		pwm_setPosition(180);
+		_delay_ms(200);
 		///*** TEST PWM SERVO ***/
 				
 		//if(pos < 80)

@@ -8,6 +8,7 @@
 #include "../lib/pwm.h"
 #include "../lib/types.h"
 #include "../lib/tracking.h"
+#include "../lib/infrared.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -73,7 +74,7 @@ unsigned int tracking(int position)
 	UINT distanceIrRight, distanceIrLeft;
 	
 	distanceIrRight = readInfrared(0);
-	distanceIRrLeft = readInfrared(1);
+	distanceIrLeft = readInfrared(1);
 	
 	switch(info_tracking(distanceIrRight, distanceIrLeft))
 	{
