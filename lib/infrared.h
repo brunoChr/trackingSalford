@@ -18,13 +18,25 @@
 
 #define SIZE_LUT_IR		512U		//!< Size of the look Up table, 512 int : 1024 byte in rom memory
 #define OFFSET_ADC_LUT	68U			//!< Offset to applied to Adc result to match the look up table
-#define NUM_READS_ADC		10U
+#define NUM_READS_ADC	10U
 
 
+/*** GLOBAL STATIC VARIABLE ***/
+
+// Read infrared
+extern UINT adcResultCh;
+//extern  distanceIR; // NOT USES AT THE TIME
+extern UINT sortedValues[NUM_READS_ADC];
+extern UINT iMed,jMed, kMed;	//<! \i for number af acquisition; j for sorting
+extern UINT returnval;
+// LUT VARIABLE
+extern UINT value;						//!< Returned value of the lookup Table
+	
+	
 /*** PROTOTYPE FUNCTION ***/
 
 //int sharp_IR_interpret_GP2Y0A02YK(int value);
-UINT lookupInfrared(UINT indexLut);
-UINT readInfrared(BYTE adcPin);
+//extern UINT lookupInfrared(UINT indexLut);
+extern UINT readInfrared(BYTE adcPin);
 
 #endif /* INFRARED_H_ */

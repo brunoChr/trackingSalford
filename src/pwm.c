@@ -8,6 +8,14 @@
 #include "../lib/pwm.h"
 #include <avr/interrupt.h>
 
+
+/*! \fn
+ *  \brief
+ *  \param 
+ *  \param 
+ *  \exception 
+ *  \return
+ */
 unsigned int tableDeCalcul(unsigned int angle)
 {
 	unsigned int angleToValue[181] = 
@@ -36,6 +44,15 @@ unsigned int tableDeCalcul(unsigned int angle)
 		
 	return angleToValue[angle];
 }
+
+
+/*! \fn
+ *  \brief
+ *  \param 
+ *  \param 
+ *  \exception 
+ *  \return
+ */
 void pwm_activeInterrupt()
 {
 	/*
@@ -46,15 +63,23 @@ void pwm_activeInterrupt()
 	ETIMSK |= (1 << TOIE3); // Interrupt on timer overflow enable
 }
 
+
+/*! \fn
+ *  \brief
+ *  \param 
+ *  \param 
+ *  \exception 
+ *  \return
+ */
 void pwm_init()
 {
 	/*
 	* Initialisation du PWM
 	*/
 
-	sei(); // Activation des interruptions globales
+	//sei(); // Activation des interruptions globales
 	
-	pwm_activeInterrupt();
+	//pwm_activeInterrupt();
 	pwm_positionCentrale();
 	
 	/*Utilisation du port B*/
@@ -104,6 +129,14 @@ void pwm_rotationGauche(void)
 	OCR3A = tableDeCalcul(0);
 }
 
+
+/*! \fn
+ *  \brief
+ *  \param 
+ *  \param 
+ *  \exception 
+ *  \return
+ */
 void pwm_rotationDroite(void)
 {
 	/*Reglage du temps haut à 2 ms (position extreme droite)*/
@@ -111,12 +144,28 @@ void pwm_rotationDroite(void)
 	OCR3A = tableDeCalcul(180);
 }
 
+
+/*! \fn
+ *  \brief
+ *  \param 
+ *  \param 
+ *  \exception 
+ *  \return
+ */
 void pwm_positionCentrale(void)
 {
 	//OCR3A = ICR3 * (1.5/20); //20ms pour une fréquence de PWM = 50Hz
 	OCR3A = tableDeCalcul(90);
 }
 
+
+/*! \fn
+ *  \brief
+ *  \param 
+ *  \param 
+ *  \exception 
+ *  \return
+ */
 void pwm_setPosition(unsigned int angle)
 {
 	/*

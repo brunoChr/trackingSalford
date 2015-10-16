@@ -12,6 +12,13 @@
 
 */
 
+/*! \fn
+ *  \brief
+ *  \param 
+ *  \param 
+ *  \exception 
+ *  \return
+ */
 void adc_init()
 {
 	// AREF = AVcc
@@ -27,6 +34,13 @@ void adc_init()
 }
 
 
+/*! \fn
+ *  \brief
+ *  \param 
+ *  \param 
+ *  \exception 
+ *  \return
+ */
 unsigned int adc_read(BYTE ch)
 {
 	// select the corresponding channel 0~7
@@ -49,6 +63,13 @@ unsigned int adc_read(BYTE ch)
 }
 
 
+/*! \fn
+ *  \brief
+ *  \param 
+ *  \param 
+ *  \exception 
+ *  \return
+ */
 FLOAT adc2MilliVolt(unsigned int adcData)
 {
 	return ((adcData*5)/1023);

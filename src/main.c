@@ -13,52 +13,57 @@
 #include "../lib/tracking.h"
 #include "../lib/lcd.h"
 
-/*** WARNING MACRO USE FOR DEBUGGING, WILL BE DELETE ***/
-#define DEBUG 0
-#define LCD	  0
-#define UART  1	
-#define PWM   0
-
-
-// [+]Setup the TIMER1_COMPA interrupt - it will be our tick interrupt.
-TASK_ISR(TIMER1_COMPA_vect, tick_interrupt());
 
 
 /*** GLOBAL VARIABLE, MOVE TO .h ***/
-volatile char x = ' ';
 
-
-enum ReceiveCmd
-{
-	CMD_START = '#',
-	CMD_IRR = '1',
-	CMD_IRL = '2',
-	CMD_THERM = '3',
-	CMD_SERVO = '4',	
-};
-
-
-typedef struct flagReceive
-{
-	BOOL start;
-	
-} flagReceive;
-
-
+static BYTE thermal_Buff[THERMAL_BUFF_SIZE];		//!< \Buffer of temp
+static BYTE *thermalDataPtr;						//!< \Pointer to the buffer temp
+static semaphore_t tick = {0};						//!< \A semaphore is incremented at every tick.
+static UINT  distanceIRrLeft, distanceIrRight;
+static SHORT pos;
 flagReceive flagRx;
-//enum ReceiveCmd RxCmd;
 
 BOOL flagSensorValueChanged;
 //BOOL flagReceiveValue;
 BYTE bufferSerialRx[32];
 
+/*** Prototype function main ***/
+
+static BYTE * getRandom();							//!< \Return a 16 byte array fill with random number
+static void setup(void);							//!< \Init function of the system
+void delay_ms(unsigned int t);				//!< \Wait ms
+
+void init_timer(unsigned int hz);
+void idle_task(void *p);
+uint8_t tick_interrupt();
+
+
+/*** WARNING ! MAYBE TURN INTO STATIC ***/
+void taskSensor(void *p);					//!< \Task update of sensor
+void taskSerialTxRx(void *p);					//!< \Task serial communication emission
+void taskSerialCmd(void *p);					//!< \Task serial communication reception
+void taskTracking(void *p);					//!< \Task tracking
+
+// [+]Setup the TIMER1_COMPA interrupt - it will be our tick interrupt.
+TASK_ISR(TIMER1_COMPA_vect, tick_interrupt());
+
+
+
+/*! \fn
+ *  \brief
+ *  \param 
+ *  \param 
+ *  \exception 
+ *  \return
+ */
 void my_itoa(int value, BYTE *buf, int base){
 	
 	int i = 30;
 	
-	buf = "";
+	buf = (BYTE *)"";
 	
-	for(; value && i ; --i, value /= base) buf = "0123456789abcdef"[value % base] + buf;
+	for(; value && i ; --i, value /= base) (buf = "0123456789abcdef"[value % base] + buf);
 	
 }
 
@@ -70,19 +75,15 @@ void my_itoa(int value, BYTE *buf, int base){
  */
 int main(void)
 {
-	char x = ' ';
-	BYTE lcdBuffer[24];
+	//BYTE lcdBuffer[24];
 
 	/*** VARIABLE INITIALISATION ***/
-	adcResultCh0 = 0;
-	adcResultCh1 = 0;
-	distanceIrRight = 0;
-	distanceIRrLeft = 0;
 	
 
 	/*** SETUP SYSTEM ***/
 	setup();				
 	
+	cli();			 // Interrupts should remain disabled - they will be enabled as soon as the first task starts executing.
 	clr(B,0);
 	
 	#if UART
@@ -111,14 +112,11 @@ int main(void)
 
 	// [+]Create tasks.
 	/*** WARNING !!  Priority and Buffer NEED TO BE VERIFY ***/
-	create_task(taskSensor, 0, 0, 400U, 100U, 0);		//<! \Size of stack & Priority
-	create_task(taskSerialTxRx, 0, 0, 400U, 60U, 0);
-	create_task(taskSerialCmd, 0, 0, 400U, 60U,  0);
-	create_task(taskTracking, 0, 0, 400U, 40U,  0);
+	create_task(taskSensor, 0, 0, 65U, 100U, 0);		//<! \Size of stack & Priority
+	create_task(taskSerialTxRx, 0, 0, 80U, 60U, 0);
+	//create_task(taskSerialCmd, 0, 0, 100U, 60U,  0);
+	//create_task(taskTracking, 0, 0, 100U, 40U,  0);
 	
-	#if LCD
-	LCD_command(LCD_CLR);
-	#endif
 
 	init_timer(5000U);	//!< \Set TIMER1_COMPA interrupt to tick every 80,000 clock cycles.
 
@@ -151,8 +149,16 @@ ISR(TIMER3_COMPA_vect)
 }
 
 
+
+/*! \fn
+ *  \brief
+ *  \param 
+ *  \param 
+ *  \exception 
+ *  \return
+ */
 /* function to generate and return random numbers */
-BYTE * getRandom( )
+static BYTE * getRandom( )
 {
 	static BYTE  r[16];
 	int i;
@@ -168,7 +174,15 @@ BYTE * getRandom( )
 	return r;
 }
 
-void setup(void)
+
+/*! \fn
+ *  \brief
+ *  \param 
+ *  \param 
+ *  \exception 
+ *  \return
+ */
+static void setup(void)
 {
 	/*** INIT ***/
 
@@ -198,17 +212,34 @@ void setup(void)
 }
 
 
+/*! \fn
+ *  \brief
+ *  \param 
+ *  \param 
+ *  \exception 
+ *  \return
+ */
 void delay_ms(unsigned int t)
 {
 	wait_for_increment_of(&tick, t, 0, 0);
 }
 
 
+/*! \fn
+ *  \brief
+ *  \param 
+ *  \param 
+ *  \exception 
+ *  \return
+ */
 void taskSensor(void *p)
 {
 	while(1)	
 	{
+		//printf("\nUart : %d", uart_kbhit());
+		//uart_putchar('a');
 		thermalDataPtr = mesure_thermal(thermal_Buff, THERMAL_BUFF_SIZE - 1) ;			//<! \Mesure of the thermal
+		
 		distanceIrRight = readInfrared(ADC_CH_IR_RIGHT);
 		distanceIRrLeft = readInfrared(ADC_CH_IR_LEFT);
 		//my_itoa(distanceIrRight, lcdBuffer, 10);
@@ -216,7 +247,7 @@ void taskSensor(void *p)
 		//
 		//LCD_command(LCD_CLR);
 		
-		flagSensorValueChanged = 0;
+		flagSensorValueChanged = 1;
 		
 		//printf("\ntSensor");
 		delay_ms(DELAY_TSENSOR);
@@ -224,109 +255,129 @@ void taskSensor(void *p)
 }
 
 
+/*! \fn
+ *  \brief
+ *  \param 
+ *  \param 
+ *  \exception 
+ *  \return
+ */
+volatile char rxData = ' ';
+
 void taskSerialTxRx(void *p)
 {
 	while(1)
 	{	
-				
-		if(flagSensorValueChanged == 1)
-		{			
-			/*** TEST THERMAL SENSOR ***/
-			if(thermalDataPtr != NULL)
-			{
-				/*** WARNING ! PRINTF JUST TO SEE IN PUTTY, WILL BE CHANGED TO uart_putchar ***/
-				printf("\r\n");
-				for (index = 0 ; index < THERMAL_TP_SIZE-1 ; index++)
-				{
-				printf(" %d", thermalDataPtr[index]);
-				}
-				printf("\r\n");
-			}
-			else
-			{
-				return(-1);
-				printf("\r\n thermal error ...");
-			}
+		//printf("\ntRxTx");
 		
-			//printf("\r\n%d\t%d\t%d\t%d",adcResultCh0, adcResultCh1, distanceIrRight, distanceIRrLeft);
-		
-			/*** TEST FORMAT PROTOCOL ***/
-			//Frame = formatProtocol(THERMAL_SENSOR, thermalDataPtr, NBR_DATA);
-			//
-			//uart_putchar(Frame.sb);
-			//uart_putchar(Frame.id);
-			//
-			//for (index = 0; index < NBR_DATA; index++)
-			//{
-			//uart_putchar(Frame.data[index]);
-			//}
-			//
-			//uart_putchar(Frame.cs);
-			//uart_putchar(Frame.cn);
-			//uart_putchar(Frame.eb);
-			
-			flagSensorValueChanged = 0;	
-		}
-		
-		if(x = uart_getchar())
+		if((rxData = uart_getchar()))
 		{
-			if(x == CMD_START)
+			if(rxData == CMD_START)
 			{	
 				flagRx.start = 1;
-				printf("\r\nCmd Start");
+				
+				#if VERBOSE
+				uart_putchar('\n');
+				uart_putchar('C');
+				#endif 
 			}
 			
-			x = ' ';
+			rxData = ' ';
 		}
 		
 		if(flagRx.start)
 		{
-			printf("\r\nStart");
+			//printf("\r\nStart");
 			
-			//x = ' ';
-			if (x = uart_getchar())
+			//rxData = ' ';
+			if ((rxData = uart_getchar()))
 			{
-				if (x == CMD_IRL)
+				if (rxData == CMD_IRL)
 				{
-					uart_putchar()
-					printf("\r\nCMD IRL");
+					#if VERBOSE
+					uart_putchar('L');
+					uart_putchar('\n');
+					#endif
+					
+					/*** TEST RIR ***/
+					
+					sendFrame((BYTE *)distanceIRrLeft, 2);
+					
+					
 					flagRx.start = 0;
-					x = ' ';
 				}
-				else if(x == CMD_IRR)
+				else if(rxData == CMD_IRR)
 				{
-					printf("\r\nCMD IRR");
+					//printf("\r\nCMD IRR");
+					#if VERBOSE
+					uart_putchar('R');
+					uart_putchar('\n');
+					#endif
+					
+					/*** TEST RIR ***/
+					sendFrame((BYTE *)distanceIrRight, 2);
+					
+					
 					flagRx.start = 0;
-					x = ' ';
 				}
-				else if(x == CMD_THERM)
+				else if(rxData == CMD_THERM)
 				{
-					printf("\r\nCMD THERM");
+					//printf("\r\nCMD THERM");
+					#if VERBOSE
+					uart_putchar('T');
+					uart_putchar('\n');
+					#endif
+					
+					/*** TEST THERMAL SENSOR ***/
+					sendFrame(thermalDataPtr, NBR_DATA_THERM);
+										
 					flagRx.start = 0;
-					x = ' ';
 				}
-				else if(x == CMD_SERVO)
+				else if(rxData == CMD_SERVO)
 				{
-					printf("\r\nCMD SERVO");
+					//printf("\r\nCMD SERVO");
+					#if VERBOSE
+					uart_putchar('S');
+					uart_putchar('\n');
+					#endif
+					
+					/*** TEST SEND SERVO ***/
 					flagRx.start = 0;
-					x = ' ';
 				}
+				else
+				{
+					#if VERBOSE
+					uart_putchar('U');
+					uart_putchar('\n');
+					#endif
+					//printf("\r\nCMD UNKNOWN");
+					flagRx.start = 0;
+				}
+				
+				rxData = ' ';
 			}
 		}
 		
-		printf("\ntRxTx");
+		
 		delay_ms(DELAY_TSERIALTX);
 	}
 }
 
 
+/*! \fn
+ *  \brief
+ *  \param 
+ *  \param 
+ *  \exception 
+ *  \return
+ */
 void taskSerialCmd(void *p)
 {
 	while(1)
 	{
-		//while(x = uart_getchar())
+		//while(rxData = uart_getchar())
 		//{
-			//if(x == 'o')
+			//if(rxData == 'o')
 			//{
 				///*** TEST ADC CHANNEL 0 ***/
 				//adcResultCh0 = adc_read(ADC_CH_IR_RIGHT);
@@ -342,7 +393,7 @@ void taskSerialCmd(void *p)
 						//
 				//printf("%d;%d;%d;%d\n" ,adcResultCh0, distanceIrRight, adcResultCh1, distanceIRrLeft);
 						//
-				//x = ' ';
+				//rxData = ' ';
 						//
 				////printf("\n\rLog value");
 			//}
@@ -356,6 +407,13 @@ void taskSerialCmd(void *p)
 }
 
 
+/*! \fn
+ *  \brief
+ *  \param 
+ *  \param 
+ *  \exception 
+ *  \return
+ */
 void taskTracking(void *p)
 {
 	pos = 90;
@@ -385,7 +443,7 @@ void taskTracking(void *p)
 		//pos = -90;
 		//}
 		
-		//if(x == 'o')
+		//if(rxData == 'o')
 		//{
 			//if (flagSensorValueChanged == 1)
 			//{
@@ -393,24 +451,32 @@ void taskTracking(void *p)
 				//printf("%d;%d\n",distanceIRrLeft, distanceIrRight);
 			//}
 			//
-			//x = ' ';
+			//rxData = ' ';
 			//
 			//printf("\n\rLog value");
 		//}
 		//
-		//else if (x == 's')
+		//else if (rxData == 's')
 		//{			
 			//printf("\n\rStop log ir ...");
 			//
-			//x = ' ';
+			//rxData = ' ';
 		//}
 
-		printf("\ntTrack");		
+		//printf("\ntTrack");		
 		delay_ms(DELAY_TTRACKING);
 	}	
 }
 
 
+
+/*! \fn
+ *  \brief
+ *  \param 
+ *  \param 
+ *  \exception 
+ *  \return
+ */
 void init_timer(unsigned int hz)
 {
 	// [+]Set TIMER1_COMPA interrupt to tick every 80,000 clock cycles.
@@ -424,6 +490,13 @@ void init_timer(unsigned int hz)
 // This is our idle task - the task that runs when all others are suspended.
 // We sleep the CPU - the CPU will automatically awake when the tick interrupt occurs
 // This task cannot be stopped, so it is automatically re-started whenever it tries to exit.
+/*! \fn
+ *  \brief
+ *  \param 
+ *  \param 
+ *  \exception 
+ *  \return
+ */
 void idle_task(void *p)
 {
 	sleep_enable();
@@ -434,6 +507,13 @@ void idle_task(void *p)
 
 // This is a function that runs every tick interrupt - we use it to increment the tick semaphore value by one
 // We want a task switch to ALWAYS occur - it is part of the definition of the tick interrupt!
+/*! \fn
+ *  \brief
+ *  \param 
+ *  \param 
+ *  \exception 
+ *  \return
+ */
 uint8_t tick_interrupt()
 {
 	increment_semaphore_by(&tick, 1);

@@ -8,6 +8,21 @@
 #include "../lib/infrared.h"
 #include "../lib/adc.h"
 
+
+/*** LOCAL FILE VARAIBLE ***/
+// Read infrared
+UINT adcResultCh = 0;
+//UINT  distanceIR; // NOT USES AT THE TIME
+UINT sortedValues[NUM_READS_ADC];
+UINT iMed,jMed, kMed;	//<! \i for number af acquisition; j for sorting
+UINT returnval = 0;
+// LUT VARIABLE
+UINT value = 0;						//!< Returned value of the lookup Table
+
+
+static UINT lookupInfrared(UINT adcResul);
+UINT readInfrared(BYTE adcPin);
+
 /* SENSOR SHARP GP2Y0A02YK CARACTERISTIC */
 /* • Detection Accuracy @ 80 cm: ±10 cm	*/
 /* • Range: 20 to 150 cm */
@@ -18,31 +33,7 @@
 
 /*	TODO
 	maybe filter : mean, average, khalman Filer
-	
-	average = total / samples.
-	new_average = (total + new) / (samples + 1)
-	
-	Example code of average 
-	
-	//add val, return avg
-	//assuming 8bit samples
-	//avg only valid after 150 samples
-
-	uint8_t add_sample(uint8_t val){
-		static uint16_t total; //sum of 150 samples
-		static uint8_t index; //buf index
-		static uint8_t buf[150]; //store 150 samples
-
-		if(index>149){ //if overflow
-			index=0; //reset index
-		}
-		total -= buf[count]; //sub 'earliest' value
-		total += val; //add new value
-		buf[count++]=val; //store new value
-
-		return total / 150; //return average
-	}
-*/
+*/	
 
 
 /*! \fn UINT lookupInfrared(UINT indexLut) 
@@ -50,12 +41,9 @@
  *  \param c a character.
  *  \return a character pointer.
  */
-
-UINT lookupInfrared(UINT adcResul)
+static UINT lookupInfrared(UINT adcResul)
 {
-	/*** LOCAL VARIABLE ***/
-	UINT value = 0;						//!< Returned value of the lookup Table
-	
+
 	/*!
 	*	Const LUT for infrared
 	*/
@@ -104,7 +92,6 @@ UINT lookupInfrared(UINT adcResul)
 		163U,162U
 	};
 	
-	
 	/*** HANDLE DATA ***/
 	
 	adcResul = (adcResul - OFFSET_ADC_LUT);					//!< Applied the offset on the adcResult to match the LUT
@@ -133,27 +120,20 @@ UINT lookupInfrared(UINT adcResul)
  */
 UINT readInfrared(BYTE adcPin)
 {
-	UINT adcResultCh;
-	//UINT  distanceIR; // NOT USES AT THE TIME
-	
-	//<! \read multiple values and sort them to take the mode (median)
-	UINT sortedValues[NUM_READS_ADC];
-	
-	UINT i, j;	//<! \i for number af acquisition; j for sorting
-		
-	for(i=0; i < NUM_READS_ADC; i++)		//<! \Loop for acquisition (10 ~= 400ms) TO VERIFIED
+	//<! \read multiple values and sort them to take the mode (median)	
+	for(iMed = 0; iMed < NUM_READS_ADC; iMed++)		//<! \Loop for acquisition (10 ~= 400ms) TO VERIFIED
 	{		
 		adcResultCh = adc_read(adcPin);		//<! \Realize the acquisition								
 		
-		if((adcResultCh < sortedValues[0]) || (i == 0))
+		if((adcResultCh < sortedValues[0]) || (iMed == 0))
 		{
-			j = 0; //<! \insert at first position
+			jMed = 0; //<! \insert at first position
 		}
 		else
 		{
-			for(j = 1; j < i; j++)
+			for(jMed = 1; jMed < iMed; jMed++)
 			{
-				if((sortedValues[j-1] <= adcResultCh) && (sortedValues[j] >= adcResultCh))
+				if((sortedValues[jMed-1] <= adcResultCh) && (sortedValues[jMed] >= adcResultCh))
 				{
 					//<! \j is insert position
 					break;
@@ -161,22 +141,21 @@ UINT readInfrared(BYTE adcPin)
 			}
 		}
 		
-		for(int k = i; k > j; k--)
+		for(kMed = iMed; kMed > jMed; kMed--)
 		{
 			//<! \move all values higher than current reading up one position
-			sortedValues[k] = sortedValues[k-1];
+			sortedValues[kMed] = sortedValues[kMed-1];
 		}
 		
-		sortedValues[j] = adcResultCh; //<! \insert current reading
+		sortedValues[jMed] = adcResultCh; //<! \insert current reading
 	}
 	
 	
 	//<! \return scaled mode of 10 values; TO BE VERIFIED
-	UINT returnval = 0;
 	
-	for(int i = (NUM_READS_ADC/2) - 5; i < ((NUM_READS_ADC/2) + 5); i++)
+	for(iMed = (NUM_READS_ADC/2) - 5; iMed < ((NUM_READS_ADC/2) + 5); iMed++)
 	{
-		returnval += sortedValues[i];	//<! \Do the sum for average
+		returnval += sortedValues[iMed];	//<! \Do the sum for average
 	}
 	
 	returnval = (returnval/10);		//<! \Do the division for average, WARNING ! MAYBE USE A DEFINE

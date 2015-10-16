@@ -24,12 +24,12 @@
 #define START_BYTE		0x24
 #define END_BYTE		0x25
 
-#define NBR_DATA		16
+#define NBR_DATA_THERM	16
+
 
 
 
 /*** TYPEDEF DEFINITION ***/
-	
 
 /*!
  * serialProtocol class.
@@ -40,7 +40,7 @@ typedef struct serialProtocol
 {
 	BYTE sb;			/*!< Start byte */ 
 	BYTE id;			/*!< Identification byte */
-	BYTE data[NBR_DATA];	/*!< Low part of the data -> MSB first transmission (most significant bit) -> transmission end when transmitting LSB bit */
+	BYTE data[NBR_DATA_THERM];	/*!< Low part of the data -> MSB first transmission (most significant bit) -> transmission end when transmitting LSB bit */
 	//BYTE dataHigh[8];	/*!< High part of the data */
 	BYTE cs;			/*!< Cheksum of data, maybe the mean of the 16 byte data ??? or CRC */
 	BYTE cn;			/*!< data counter, facultative ?? */
@@ -49,11 +49,15 @@ typedef struct serialProtocol
 } serialProtocol;
 
 
+/*** VARAIBLE ***/
+extern serialProtocol Frame;
+extern BYTE indexFrame;
+
 /*** PROTOTYPE ***/
 
 serialProtocol formatProtocol(BYTE id, BYTE *data, INT nbrData);
 BYTE checksumCalculation(BYTE *data, BYTE size);
 BYTE computeCrc(BYTE *data, BYTE nbrOfBytes);
-
+BOOL sendFrame(BYTE *data, BYTE sizeData);
 
 #endif /* SERIALDATA_H_ */

@@ -45,36 +45,47 @@
 #define ADC_CH_IR_LEFT	1					//!< \ADC channel of the left IR sensor
 #define DEBUG 0								//!< \Debug macro
 
-#define DELAY_TSENSOR		50					//!< Delay for task sensor in ms
-#define DELAY_TSERIALTX		50					//!< Delay for task serial tx in ms
-#define DELAY_TSERIALRX		50					//!< Delay for task serial rx in ms
-#define DELAY_TTRACKING		500					//!< Delay for task tracking in ms
+#define DELAY_TSENSOR		5					//!< Delay for task sensor in ms
+#define DELAY_TSERIALTX		5					//!< Delay for task serial tx in ms
+#define DELAY_TSERIALRX		5					//!< Delay for task serial rx in ms
+#define DELAY_TTRACKING		50					//!< Delay for task tracking in ms
+
+
+/*** WARNING MACRO USE FOR DEBUGGING, WILL BE DELETE ***/
+#define DEBUG 0
+#define LCD	  0
+#define UART  1
+#define PWM   0
+#define VERBOSE 0		//<! \Make the system chatty
 
 
 /*** Globalvar ***/
 
-BYTE thermal_Buff[THERMAL_BUFF_SIZE];		//!< \Buffer of temp
-BYTE *thermalDataPtr;						//!< \Pointer to the buffer temp
-static semaphore_t tick = {0};				//!< \A semaphore is incremented at every tick.
-UINT adcResultCh0, adcResultCh1;
-UINT  distanceIRrLeft, distanceIrRight;
-serialProtocol Frame;
-BYTE index;
-SHORT pos;
 
-/*** Prototype function main ***/
+/*** ENUM & STRUCT ***/
+/*!
+ * enum ReceiveCmd
+ * \extends
+ * \brief
+ */ 
+enum ReceiveCmd
+{
+	CMD_START = '#',
+	CMD_IRR = '1',
+	CMD_IRL = '2',
+	CMD_THERM = '3',
+	CMD_SERVO = '4',
+};
 
-BYTE * getRandom();							//!< \Return a 16 byte array fill with random number
-void setup(void);							//!< \Init function of the system
-void delay_ms(unsigned int t);				//!< \Wait ms
 
-void init_timer(unsigned int hz);
-void idle_task(void *p);
-uint8_t tick_interrupt();
+typedef struct flagReceive
+{
+	BOOL start;
+	
+} flagReceive;
 
-void taskSensor(void *p);					//!< \Task update of sensor
-void taskSerialTxRx(void *p);					//!< \Task serial communication emission
-void taskSerialCmd(void *p);					//!< \Task serial communication reception
-void taskTracking(void *p);					//!< \Task tracking
+
+
+
 
 #endif /* MAIN_H_ */

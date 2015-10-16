@@ -1,5 +1,13 @@
 #include "../lib/port.h"
 
+
+/*! \fn
+ *  \brief
+ *  \param 
+ *  \param 
+ *  \exception 
+ *  \return
+ */
 void port_init(void)
 {
 	DDRB = (1<<PINB0) |	// LED0

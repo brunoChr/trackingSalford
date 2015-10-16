@@ -15,6 +15,6 @@ CHAR uart_getchar(void);
 void uart_putchar(CHAR data);
 BOOL uart_kbhit(void);
 INT  uart_printf(CHAR var, FILE *stream);
-static FILE mystdout = FDEV_SETUP_STREAM(uart_printf, NULL, _FDEV_SETUP_WRITE);
+void USART_Flush( void );
 
 #endif

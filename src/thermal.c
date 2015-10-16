@@ -1,18 +1,31 @@
 #include "../lib/thermal.h"
 #include "../lib/uart.h"
 
-//extern BYTE thermal_Buff[THERMAL_BUFF_SIZE];
-//extern BYTE tPTAT;
-//extern BYTE tP[THERMAL_TP_SIZE];
-//extern BYTE tPEC;
+/*** LOCAL FILE VARAIBLE ***/
+BYTE tPTAT;
+BYTE tP[THERMAL_TP_SIZE];
+BYTE tPEC;
+int check;
+unsigned char crc;
+int i;
+int indexTherm;
+unsigned char temp;
+
+BOOL thermal_read(BYTE address, BYTE *data);
+int D6T_checkPEC( BYTE *buf, int pPEC );
 
 
+/*! \fn
+ *  \brief
+ *  \param 
+ *  \param 
+ *  \exception 
+ *  \return
+ */
 BOOL thermal_read(BYTE address, BYTE *data)
 {
-	int check = 0;
 	if(twi_start(address, WRITE))
 	{
-		BYTE check = 0;
 		twi_write(0x4C);
 		if(twi_start(address, READ))
 		{
@@ -27,11 +40,17 @@ BOOL thermal_read(BYTE address, BYTE *data)
 	return(0);
 }
 
-unsigned char calc_crc( unsigned char data )
+
+/*! \fn
+ *  \brief
+ *  \param 
+ *  \param 
+ *  \exception 
+ *  \return
+ */
+static unsigned char calc_crc( unsigned char data )
 {
-	int index;
-	unsigned char temp;
-	for(index=0;index<8;index++){
+	for(indexTherm=0;indexTherm<8;indexTherm++){
 		temp = data;
 		data <<= 1;
 		if(temp & 0x80) data ^= 0x07;
@@ -40,10 +59,15 @@ unsigned char calc_crc( unsigned char data )
 	return data;
 }
 
+/*! \fn
+ *  \brief
+ *  \param 
+ *  \param 
+ *  \exception 
+ *  \return
+ */
 int D6T_checkPEC( BYTE *buf, int pPEC )
 {
-	unsigned char crc;
-	int i;
 	crc = calc_crc( 0x14 );
 	crc = calc_crc( 0x4C ^ crc );
 	crc = calc_crc( 0x15 ^ crc );
@@ -54,13 +78,15 @@ int D6T_checkPEC( BYTE *buf, int pPEC )
 }
 
 
+/*! \fn BYTE * mesure_thermal(const BYTE *thermal_Buff, BYTE size)
+ *  \brief
+ *  \param 
+ *  \param 
+ *  \exception 
+ *  \return a character pointer.
+ */
 BYTE * mesure_thermal(BYTE *thermal_Buff, BYTE size)
 {	
-	
-	static BYTE tPTAT;
-	static BYTE tP[THERMAL_TP_SIZE];
-	static BYTE tPEC;
-	
 	thermal_read(THERMAL_ADD, thermal_Buff);
 	
 	if(!D6T_checkPEC(thermal_Buff, size))

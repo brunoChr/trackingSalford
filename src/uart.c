@@ -1,5 +1,9 @@
 #include "../lib/uart.h"
 
+
+static FILE mystdout = FDEV_SETUP_STREAM(uart_printf, NULL, _FDEV_SETUP_WRITE);
+
+
 void uart_init(LONG baud)
 {
 	unsigned int ubrr = F_CPU/16/baud - 1;
@@ -58,4 +62,10 @@ INT uart_printf(CHAR var, FILE *stream)
 	uart_putchar('\r');
 	uart_putchar(var);
 	return(FALSE);
+}
+
+void USART_Flush( void )
+{
+	unsigned char dummy;
+	while ( UCSR0A & (1<<RXC0) ) dummy = UDR0;
 }

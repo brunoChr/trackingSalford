@@ -12,6 +12,11 @@
 
 */
 
+/*** LOCAL FILE VARAIBLE **/
+serialProtocol Frame;
+BYTE indexFrame;
+	
+
 /*! \fn BOOL formatProtocol(BYTE id, BYTE dataLow[8], BYTE dataHigh[8])
  *  \brief format data to be send by serial
  *  \param 
@@ -29,15 +34,41 @@ serialProtocol formatProtocol(BYTE id, BYTE *data, INT nbrData)
 	trameData.sb = START_BYTE;
 	trameData.id = id;
 	
-	memcpy(trameData.data, data, NBR_DATA);
+	memcpy(trameData.data, data, NBR_DATA_THERM);
 	//memcpy(trameData.dataHigh, dataHigh, sizeof(BYTE));
 	
-	trameData.cs = computeCrc(data, NBR_DATA);
+	trameData.cs = computeCrc(data, NBR_DATA_THERM);
 	trameData.eb = END_BYTE;
 	
 	return trameData;
 }
 
+
+BOOL sendFrame(BYTE *data, BYTE sizeData)
+{
+
+	if(data == 0)
+	{
+		return 1;
+	}
+	
+	/*** TEST FORMAT PROTOCOL ***/
+	Frame = formatProtocol(THERMAL_SENSOR, data, sizeData);
+	
+	uart_putchar(Frame.sb);
+	uart_putchar(Frame.id);
+	
+	for (indexFrame = 0; indexFrame < NBR_DATA_THERM; indexFrame++)
+	{
+		uart_putchar(Frame.data[indexFrame]);
+	}
+	
+	uart_putchar(Frame.cs);
+	uart_putchar(Frame.cn);
+	uart_putchar(Frame.eb);
+	
+	return 0;
+}
 
 /*! \fn checksumCalculation(BYTE *data, BYTE size)
  *  \brief compute checksum of data
