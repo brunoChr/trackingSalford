@@ -127,6 +127,7 @@ void pwm_rotationGauche(void)
 
 	//OCR3A = ICR3/20; //20ms pour une fréquence de PWM = 50Hz
 	OCR3A = tableDeCalcul(0);
+	pos = 0;
 }
 
 
@@ -142,6 +143,7 @@ void pwm_rotationDroite(void)
 	/*Reglage du temps haut à 2 ms (position extreme droite)*/
 	//OCR3A = ICR3 * (2/20); //20ms pour une fréquence de PWM = 50Hz
 	OCR3A = tableDeCalcul(180);
+	pos = 180;
 }
 
 
@@ -156,6 +158,7 @@ void pwm_positionCentrale(void)
 {
 	//OCR3A = ICR3 * (1.5/20); //20ms pour une fréquence de PWM = 50Hz
 	OCR3A = tableDeCalcul(90);
+	pos = 90;
 }
 
 
@@ -184,16 +187,45 @@ void pwm_setPosition(unsigned int angle)
 	if(angle >= 180)
 	{
 		pwm_rotationDroite();
+		pos = 180;
 	}
 	else if (angle <= (0))
 	{
 		pwm_rotationGauche();
+		pos = 0;
 	}
 	//Gestion des valeurs comprise dans l'intervalle utile
 	else
 	{
 		OCR3A = tableDeCalcul(angle);
+		pos = angle;
 	}
 
+}
+
+unsigned int pwm_getPosition(char typeSortie)
+{
+	/*! \fn unsigned int pwm_getPosition(int typeSortie)
+	*	\brief Give back the position of the servo, in degrees or in milliseconds
+	*	\param typeSortie
+	*	\param position : actual position of the servomotor, in degrees
+	*	\exception Return -1 if we ask somthing else than angle or duration
+	*	\return the new position of the servo, in degrees or milliseconds
+	*/
+	switch (typeSortie)
+	{
+		case ANGLE: //!< if the position is ask in degrees, we give back the angle position
+			return pos;
+			break;
+		
+		case DUREE_ETAT_HAUT: //!< if the position is a duration, we give back the duration of the high-state (OCR3A)
+			return tableDeCalcul(pos);
+			break;
+		
+		default:
+			return -1;
+			break;
+	}
+	return -1;
 }
 
