@@ -5,9 +5,12 @@
  *  Author: b.christol
  */ 
 
+#include "../lib/types.h"
 #include "../lib/pwm.h"
 #include <avr/interrupt.h>
 
+/*** Local variable file ***/
+static SHORT pos;
 
 /*! \fn
  *  \brief
