@@ -21,8 +21,11 @@ static BYTE thermal_Buff[THERMAL_BUFF_SIZE];		//!< \Buffer of temp
 static BYTE *thermalDataPtr;						//!< \Pointer to the buffer temp
 static semaphore_t tick = {0};						//!< \A semaphore is incremented at every tick.
 static UINT  distanceIRrLeft, distanceIrRight;
-static SHORT pos;
-flagReceive flagRx;
+const UINT *ptrDistL = &distanceIRrLeft;
+const UINT *ptrDistR = &distanceIrRight;
+
+static flagReceive flagRx;
+static compteurSensor cptSensor; 
 
 BOOL flagSensorValueChanged;
 //BOOL flagReceiveValue;
@@ -114,7 +117,7 @@ int main(void)
 	/*** WARNING !!  Priority and Buffer NEED TO BE VERIFY ***/
 	create_task(taskSensor, 0, 0, 65U, 100U, 0);		//<! \Size of stack & Priority
 	create_task(taskSerialTxRx, 0, 0, 80U, 60U, 0);
-	//create_task(taskSerialCmd, 0, 0, 100U, 60U,  0);
+	create_task(taskSerialCmd, 0, 0, 100U, 60U,  0);
 	//create_task(taskTracking, 0, 0, 100U, 40U,  0);
 	
 
@@ -233,21 +236,35 @@ void delay_ms(unsigned int t)
  *  \return
  */
 void taskSensor(void *p)
-{
+{	
 	while(1)	
 	{
 		//printf("\nUart : %d", uart_kbhit());
 		//uart_putchar('a');
-		thermalDataPtr = mesure_thermal(thermal_Buff, THERMAL_BUFF_SIZE - 1) ;			//<! \Mesure of the thermal
 		
-		distanceIrRight = readInfrared(ADC_CH_IR_RIGHT);
-		distanceIRrLeft = readInfrared(ADC_CH_IR_LEFT);
+		//<! \Timing : 1 Sample every 10ms for IR
+		if (cptSensor.cptIr == T_ACQ_IR)
+		{
+			distanceIrRight = readInfrared(ADC_CH_IR_RIGHT);
+			distanceIRrLeft = readInfrared(ADC_CH_IR_LEFT);
+			cptSensor.cptIr = 0;								//<! \Reset cpt
+			flagSensorValueChanged = 1;
+		}
+		
+		//<! \Timing : 1 Sample every 40ms for Thermal
+		if (cptSensor.cptTherm == T_ACQ_THERM)
+		{
+			thermalDataPtr = mesure_thermal(thermal_Buff, THERMAL_BUFF_SIZE - 1) ;			//<! \Mesure of the thermal
+			cptSensor.cptTherm = 0;															//<! \Reset cpt
+			flagSensorValueChanged = 1;
+		}
+		
 		//my_itoa(distanceIrRight, lcdBuffer, 10);
 		//LCD_write(lcdBuffer);
 		//
 		//LCD_command(LCD_CLR);
 		
-		flagSensorValueChanged = 1;
+		if((++cptSensor.cptIr < 255) && (++cptSensor.cptTherm < 255)); //<! \increment cpt every ms
 		
 		//printf("\ntSensor");
 		delay_ms(DELAY_TSENSOR);
@@ -300,9 +317,7 @@ void taskSerialTxRx(void *p)
 					#endif
 					
 					/*** TEST RIR ***/
-					
-					sendFrame((BYTE *)distanceIRrLeft, 2);
-					
+					sendFrame((BYTE *)ptrDistL, 2);
 					
 					flagRx.start = 0;
 				}
@@ -315,7 +330,7 @@ void taskSerialTxRx(void *p)
 					#endif
 					
 					/*** TEST RIR ***/
-					sendFrame((BYTE *)distanceIrRight, 2);
+					sendFrame((BYTE *)ptrDistR, 2);
 					
 					
 					flagRx.start = 0;
@@ -414,6 +429,9 @@ void taskSerialCmd(void *p)
  *  \exception 
  *  \return
  */
+/*** Globalvar ***/
+//SHORT pos;
+
 void taskTracking(void *p)
 {
 	//pos = 90;

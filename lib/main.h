@@ -45,11 +45,13 @@
 #define ADC_CH_IR_LEFT	1					//!< \ADC channel of the left IR sensor
 #define DEBUG 0								//!< \Debug macro
 
-#define DELAY_TSENSOR		5					//!< Delay for task sensor in ms
-#define DELAY_TSERIALTX		5					//!< Delay for task serial tx in ms
+#define DELAY_TSENSOR		1					//!< Delay for task sensor in ms
+#define DELAY_TSERIALTX		1					//!< Delay for task serial tx in ms
 #define DELAY_TSERIALRX		5					//!< Delay for task serial rx in ms
 #define DELAY_TTRACKING		50					//!< Delay for task tracking in ms
 
+#define T_ACQ_IR	10
+#define	T_ACQ_THERM 50
 
 /*** WARNING MACRO USE FOR DEBUGGING, WILL BE DELETE ***/
 #define DEBUG 0
@@ -85,6 +87,11 @@ typedef struct flagReceive
 } flagReceive;
 
 
+typedef struct compteurSensor
+{
+	BYTE cptIr;
+	BYTE cptTherm;
+} compteurSensor;
 
 
 
