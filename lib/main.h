@@ -50,8 +50,11 @@
 #define DELAY_TSERIALRX		5					//!< Delay for task serial rx in ms
 #define DELAY_TTRACKING		50					//!< Delay for task tracking in ms
 
-#define T_ACQ_IR	10
-#define	T_ACQ_THERM 50
+
+#define T_ACQ_IR	10	//<! \Acquisition period for IR in ms
+#define	T_ACQ_THERM 50	//<! \Acquisition period for thermal in ms
+#define TIMEOUT_CMD	5	//<! \Timout in ms for received complete CMD : #x 
+
 
 /*** WARNING MACRO USE FOR DEBUGGING, WILL BE DELETE ***/
 #define DEBUG 0
@@ -77,6 +80,8 @@ enum ReceiveCmd
 	CMD_IRL = '2',
 	CMD_THERM = '3',
 	CMD_SERVO = '4',
+	CARAC_ACK = 'A',
+	CARAC_NACK = 'N',
 };
 
 
@@ -87,11 +92,12 @@ typedef struct flagReceive
 } flagReceive;
 
 
-typedef struct compteurSensor
+typedef struct compteur
 {
 	BYTE cptIr;
 	BYTE cptTherm;
-} compteurSensor;
+	UINT cptTimeoutCpt;
+} compteur;
 
 
 

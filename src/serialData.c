@@ -44,16 +44,38 @@ serialProtocol formatProtocol(BYTE id, BYTE *data, INT nbrData)
 }
 
 
-BOOL sendFrame(BYTE *data, BYTE sizeData)
+BOOL sendFrame(BYTE dataType, BYTE *data, BYTE sizeData)
 {
-
 	if(data == 0)
 	{
 		return 1;
 	}
 	
+	
 	/*** TEST FORMAT PROTOCOL ***/
-	Frame = formatProtocol(THERMAL_SENSOR, data, sizeData);
+	
+	switch (dataType)
+	{
+		case IR_R_SENSOR :
+		Frame = formatProtocol(IR_R_SENSOR, data, sizeData);
+		break;
+		
+		case IR_L_SENSOR :
+		Frame = formatProtocol(IR_L_SENSOR, data, sizeData);
+		break;
+		
+		case THERMAL_SENSOR :
+		Frame = formatProtocol(THERMAL_SENSOR, data, sizeData);
+		break;
+		
+		case SERVO_MOTOR:
+		Frame = formatProtocol(SERVO_MOTOR, data, sizeData);
+		break;
+		
+		default :
+			return -1;
+		break;	
+	}
 	
 	uart_putchar(Frame.sb);
 	uart_putchar(Frame.id);

@@ -25,7 +25,7 @@ const UINT *ptrDistL = &distanceIRrLeft;
 const UINT *ptrDistR = &distanceIrRight;
 
 static flagReceive flagRx;
-static compteurSensor cptSensor; 
+static compteur cpt; 
 
 BOOL flagSensorValueChanged;
 //BOOL flagReceiveValue;
@@ -243,19 +243,19 @@ void taskSensor(void *p)
 		//uart_putchar('a');
 		
 		//<! \Timing : 1 Sample every 10ms for IR
-		if (cptSensor.cptIr == T_ACQ_IR)
+		if (cpt.cptIr == T_ACQ_IR)
 		{
 			distanceIrRight = readInfrared(ADC_CH_IR_RIGHT);
 			distanceIRrLeft = readInfrared(ADC_CH_IR_LEFT);
-			cptSensor.cptIr = 0;								//<! \Reset cpt
+			cpt.cptIr = 0;								//<! \Reset cpt
 			flagSensorValueChanged = 1;
 		}
 		
 		//<! \Timing : 1 Sample every 40ms for Thermal
-		if (cptSensor.cptTherm == T_ACQ_THERM)
+		if (cpt.cptTherm == T_ACQ_THERM)
 		{
 			thermalDataPtr = mesure_thermal(thermal_Buff, THERMAL_BUFF_SIZE - 1) ;			//<! \Mesure of the thermal
-			cptSensor.cptTherm = 0;															//<! \Reset cpt
+			cpt.cptTherm = 0;															//<! \Reset cpt
 			flagSensorValueChanged = 1;
 		}
 		
@@ -264,7 +264,7 @@ void taskSensor(void *p)
 		//
 		//LCD_command(LCD_CLR);
 		
-		if((++cptSensor.cptIr < 255) && (++cptSensor.cptTherm < 255)); //<! \increment cpt every ms
+		if((++cpt.cptIr < 255) && (++cpt.cptTherm < 255)); //<! \increment cpt every ms
 		
 		//printf("\ntSensor");
 		delay_ms(DELAY_TSENSOR);
@@ -283,6 +283,8 @@ volatile char rxData = ' ';
 
 void taskSerialTxRx(void *p)
 {
+	static UINT timeout;
+	
 	while(1)
 	{	
 		//printf("\ntRxTx");
@@ -292,6 +294,7 @@ void taskSerialTxRx(void *p)
 			if(rxData == CMD_START)
 			{	
 				flagRx.start = 1;
+				timeout = cpt.cptTimeoutCpt;
 				
 				#if VERBOSE
 				uart_putchar('\n');
@@ -309,6 +312,9 @@ void taskSerialTxRx(void *p)
 			//rxData = ' ';
 			if ((rxData = uart_getchar()))
 			{
+				/*if((cpt.cptTimeoutCpt - timeout) < TIMEOUT_CMD) break;
+					flagRx.start = 0; -> don't rece;
+				*/ 
 				if (rxData == CMD_IRL)
 				{
 					#if VERBOSE
@@ -316,8 +322,14 @@ void taskSerialTxRx(void *p)
 					uart_putchar('\n');
 					#endif
 					
+					/*** Ack ***/
+					uart_putchar(CMD_START);
+					uart_putchar(CARAC_ACK);
+					
+					/*** WARNING ! MAYBE INTRODUCE A DELAY HERE ***/
+					
 					/*** TEST RIR ***/
-					sendFrame((BYTE *)ptrDistL, 2);
+					sendFrame(IR_L_SENSOR, (BYTE *)ptrDistL, 2);
 					
 					flagRx.start = 0;
 				}
@@ -329,8 +341,14 @@ void taskSerialTxRx(void *p)
 					uart_putchar('\n');
 					#endif
 					
+					/*** Ack ***/
+					uart_putchar(CMD_START);
+					uart_putchar(CARAC_ACK);
+							
+					/*** WARNING ! MAYBE INTRODUCE A DELAY HERE ***/
+										
 					/*** TEST RIR ***/
-					sendFrame((BYTE *)ptrDistR, 2);
+					sendFrame(IR_R_SENSOR, (BYTE *)ptrDistR, 2);
 					
 					
 					flagRx.start = 0;
@@ -343,8 +361,14 @@ void taskSerialTxRx(void *p)
 					uart_putchar('\n');
 					#endif
 					
+					/*** Ack ***/
+					uart_putchar(CMD_START);
+					uart_putchar(CARAC_ACK);
+										
+					/*** WARNING ! MAYBE INTRODUCE A DELAY HERE ***/
+										
 					/*** TEST THERMAL SENSOR ***/
-					sendFrame(thermalDataPtr, NBR_DATA_THERM);
+					sendFrame(THERMAL_SENSOR, thermalDataPtr, NBR_DATA_THERM);
 										
 					flagRx.start = 0;
 				}
@@ -356,6 +380,12 @@ void taskSerialTxRx(void *p)
 					uart_putchar('\n');
 					#endif
 					
+					/*** Ack ***/
+					uart_putchar(CMD_START);
+					uart_putchar(CARAC_ACK);
+										
+					/*** WARNING ! MAYBE INTRODUCE A DELAY HERE ***/
+										
 					/*** TEST SEND SERVO ***/
 					flagRx.start = 0;
 				}
@@ -365,6 +395,13 @@ void taskSerialTxRx(void *p)
 					uart_putchar('U');
 					uart_putchar('\n');
 					#endif
+					
+					/*** Non Ack ***/
+					uart_putchar(CMD_START);
+					uart_putchar(CARAC_NACK);
+										
+					/*** WARNING ! MAYBE INTRODUCE A DELAY HERE ***/
+										
 					//printf("\r\nCMD UNKNOWN");
 					flagRx.start = 0;
 				}
@@ -373,7 +410,7 @@ void taskSerialTxRx(void *p)
 			}
 		}
 		
-		
+		if(++cpt.cptTimeoutCpt < 65535);
 		delay_ms(DELAY_TSERIALTX);
 	}
 }
@@ -443,12 +480,13 @@ void taskTracking(void *p)
 		newPos = tracking(pos);
 		pos = newPos;
 		*/
-		pwm_setPosition(10);
-		_delay_ms(200);
-		pwm_setPosition(90);
-		_delay_ms(200);
-		pwm_setPosition(180);
-		_delay_ms(200);
+		//pwm_setPosition(10);
+		//_delay_ms(200);
+		//pwm_setPosition(90);
+		//_delay_ms(200);
+		//pwm_setPosition(180);
+		//_delay_ms(200);
+		
 		///*** TEST PWM SERVO ***/
 				
 		//if(pos < 80)
