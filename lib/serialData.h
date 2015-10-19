@@ -58,6 +58,6 @@ extern BYTE indexFrame;
 serialProtocol formatProtocol(BYTE id, BYTE *data, INT nbrData);
 BYTE checksumCalculation(BYTE *data, BYTE size);
 BYTE computeCrc(BYTE *data, BYTE nbrOfBytes);
-BOOL sendFrame(BYTE *data, BYTE sizeData);
+BOOL sendFrame(BYTE dataType, BYTE *data, BYTE sizeData);
 
 #endif /* SERIALDATA_H_ */
