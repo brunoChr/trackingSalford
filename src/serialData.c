@@ -7,92 +7,168 @@
 
 
 #include "../lib/serialData.h"
+#include <string.h>
+#include "../lib/uart.h"
 
 /* TODO
 
 */
 
-/*** LOCAL FILE VARAIBLE **/
-serialProtocol Frame;
-BYTE indexFrame;
+/*** LOCAL FILE VARIABLE **/
+static serialProtocol trameData;		// Implement a struct data of type serialProtocol -> see serialData.h
+static BYTE indexFrame;
 	
 
-/*! \fn BOOL formatProtocol(BYTE id, BYTE dataLow[8], BYTE dataHigh[8])
+/*** GLOBAL FUNCTION PROTOTYPE ***/
+BOOL sendFrameTh(const BYTE *data, BYTE sizeData);
+BOOL sendFrameIr(BYTE id, UINT dataIr);
+
+/*** LOCAL FUNCTION PROTOTYPE ***/
+static BYTE computeCrc(const BYTE *data, BYTE nbrOfBytes);
+//static BYTE checksumCalculation(BYTE *data, BYTE size);
+
+
+/*! \fn BOOL sendFrameTh(const BYTE *data, BYTE sizeData)
  *  \brief format data to be send by serial
  *  \param 
  *  \param 
  *  \exception 
- *  \return a character pointer.
+ *  \return error
  */
-serialProtocol formatProtocol(BYTE id, BYTE *data, INT nbrData)
+BOOL sendFrameTh(const BYTE *data, BYTE sizeData)
 {
 	/*** SERIAL PROTOCOL FORMAT ***/
 	/*** SB/ID/D0...D15/CS/..CN../EB ***/
-	
-	serialProtocol trameData;		// Implement a struct data of type serialProtocol -> see serialData.h
-	
+		
 	trameData.sb = START_BYTE;
-	trameData.id = id;
+	trameData.id = THERMAL_SENSOR;
 	
-	memcpy(trameData.data, data, NBR_DATA_THERM);
-	//memcpy(trameData.dataHigh, dataHigh, sizeof(BYTE));
+	memcpy(trameData.data, data, sizeData);
 	
-	trameData.cs = computeCrc(data, NBR_DATA_THERM);
+	trameData.cn = sizeData;
+	trameData.cs = computeCrc(data, sizeData);
 	trameData.eb = END_BYTE;
-	
-	return trameData;
-}
-
-
-BOOL sendFrame(BYTE dataType, BYTE *data, BYTE sizeData)
-{
-	if(data == 0)
+		
+	/*** POSSIBLE ERROR TRAITEMENT ***/
+	/*if(data == 0)
 	{
+		#if VERBOSE
 		printf("\nData frame null");
+		#endif
 		return -1;
-	}
+	}*/
 	
 	
-	/*** TEST FORMAT PROTOCOL ***/
+	/*** TEST SEND PROTOCOL ***/
+	uart_putchar(trameData.sb);
+	uart_putchar(trameData.id);
 	
-	switch (dataType)
+	for (indexFrame = 0; indexFrame < NBR_DATA; indexFrame++)
 	{
-		case IR_R_SENSOR :
-		Frame = formatProtocol(IR_R_SENSOR, data, sizeData);
-		break;
-		
-		case IR_L_SENSOR :
-		Frame = formatProtocol(IR_L_SENSOR, data, sizeData);
-		break;
-		
-		case THERMAL_SENSOR :
-		Frame = formatProtocol(THERMAL_SENSOR, data, sizeData);
-		break;
-		
-		case SERVO_MOTOR:
-		Frame = formatProtocol(SERVO_MOTOR, data, sizeData);
-		break;
-		
-		default :
-			printf("\nData frame null");
-			return -1;
-		break;	
+		//printf("%d",Frame.data[indexFrame]);
+		uart_putchar(trameData.data[indexFrame]);
 	}
 	
-	uart_putchar(Frame.sb);
-	uart_putchar(Frame.id);
-	
-	for (indexFrame = 0; indexFrame < NBR_DATA_THERM; indexFrame++)
-	{
-		uart_putchar(Frame.data[indexFrame]);
-	}
-	
-	uart_putchar(Frame.cs);
-	uart_putchar(Frame.cn);
-	uart_putchar(Frame.eb);
+	uart_putchar(trameData.cs);
+	uart_putchar(trameData.cn);
+	uart_putchar(trameData.eb);
 	
 	return 0;
 }
+
+
+/*! \fn BOOL sendFrameIr(BYTE id, UINT dataIr)
+ *  \brief format data to be send by serial
+ *  \param 
+ *  \param 
+ *  \exception 
+ *  \return error
+ */
+BOOL sendFrameIr(BYTE id, UINT dataIr)
+{
+	/*** SERIAL PROTOCOL FORMAT ***/
+	/*** SB/ID/D0...D15/CS/..CN../EB ***/
+		
+	/*** Formatage of the frame ***/
+	trameData.sb = START_BYTE;
+	trameData.id = id;
+	
+	trameData.data[0] = (BYTE)(dataIr & 0xFF);					//<! \Send MSByte of distance first
+	trameData.data[1] = (BYTE)((dataIr >> 8) & 0xFF);			//<! \Then send the LSbyte of distance
+	
+	for (indexFrame = 2; indexFrame < NBR_DATA; indexFrame++)
+	{
+		trameData.data[indexFrame] = 0x00;
+	}
+			
+	trameData.cs = computeCrc(&trameData.data[0], 2);
+	trameData.cn = 0x02;
+	
+	trameData.eb = END_BYTE;
+	
+	/*** Send the frame ***/	 
+	uart_putchar(trameData.sb);
+	uart_putchar(trameData.id);
+		
+	for (indexFrame = 0; indexFrame < NBR_DATA; indexFrame++)
+	{
+		//printf("%x",trameData.data[indexFrame]);
+		uart_putchar(trameData.data[indexFrame]);
+	}
+		
+	uart_putchar(trameData.cs);
+	uart_putchar(trameData.cn);
+	uart_putchar(trameData.eb);
+	
+	return 0;
+}
+
+
+/*! \fn BOOL sendFrameIr(BYTE id, UINT position)
+ *  \brief format data to be send by serial
+ *  \param 
+ *  \param 
+ *  \exception 
+ *  \return error
+ */
+BOOL sendFrameServo(BYTE id, BYTE position)
+{
+	/*** SERIAL PROTOCOL FORMAT ***/
+	/*** SB/ID/D0...D15/CS/..CN../EB ***/
+		
+	/*** Formatage of the frame ***/
+	trameData.sb = START_BYTE;
+	trameData.id = id;
+	
+	trameData.data[0] = position;					//<! \Send Position
+
+	for (indexFrame = 1; indexFrame < NBR_DATA; indexFrame++)
+	{
+		trameData.data[indexFrame] = 0x00;
+	}
+			
+	trameData.cs = computeCrc(&trameData.data[0], 1);
+	trameData.cn = 0x01;
+	
+	trameData.eb = END_BYTE;
+	
+	/*** Send the frame ***/	 
+	uart_putchar(trameData.sb);
+	uart_putchar(trameData.id);
+		
+	for (indexFrame = 0; indexFrame < NBR_DATA; indexFrame++)
+	{
+		//printf("%x",trameData.data[indexFrame]);
+		uart_putchar(trameData.data[indexFrame]);
+	}
+		
+	uart_putchar(trameData.cs);
+	uart_putchar(trameData.cn);
+	uart_putchar(trameData.eb);
+	
+	return 0;
+}
+
 
 /*! \fn checksumCalculation(BYTE *data, BYTE size)
  *  \brief compute checksum of data
@@ -101,57 +177,46 @@ BOOL sendFrame(BYTE dataType, BYTE *data, BYTE sizeData)
  *  \exception 
  *  \return checksum
  */
-BYTE checksumCalculation(BYTE *data, BYTE size)
-{
-	//int array[8];
-	int i, num, negative_sum = 0, positive_sum = 0;
-	float total = 0.0, average;
-	
-	num = sizeof(BYTE)*size;
-	
-	/*  Summation starts */
-	for (i = 0; i < num; i++)
-	{
-		if (data[i] < 0)
-		{
-			negative_sum = negative_sum + data[i];
-		}
-		else if (data[i] > 0)
-		{
-			positive_sum = positive_sum + data[i];
-		}
-		else if (data[i] == 0)
-		{
-			;
-		}
-		total = total + data[i] ;
-	}
-	
-	average = (total / num);
-	
-	return average;
-}
+//static BYTE checksumCalculation(BYTE *data, BYTE size)
+//{
+	////int array[8];
+	//int i, num, negative_sum = 0, positive_sum = 0;
+	//float total = 0.0, average;
+	//
+	//num = sizeof(BYTE)*size;
+	//
+	///*  Summation starts */
+	//for (i = 0; i < num; i++)
+	//{
+		//if (data[i] < 0)
+		//{
+			//negative_sum = negative_sum + data[i];
+		//}
+		//else if (data[i] > 0)
+		//{
+			//positive_sum = positive_sum + data[i];
+		//}
+		//else if (data[i] == 0)
+		//{
+			//;
+		//}
+		//total = total + data[i] ;
+	//}
+	//
+	//average = (total / num);
+	//
+	//return average;
+//}
 
 
-typedef enum
-{
-	CHECKSUM_ERROR = 0X04
-} etError;
-
-//CRC
-#define POLYNOMIAL 0x31 //P(x)=x^8+x^5+x^4+1 = 100110001
-
-//============================================================
-BYTE computeCrc(BYTE *data, BYTE nbrOfBytes)
-//============================================================
-//calculates checksum for n bytes of data
-//and compares it with expected checksum
-//input: data[] checksum is built based on this data
-// nbrOfBytes checksum is built for n bytes of data
-// checksum expected checksum
-//return: error: CHECKSUM_ERROR = checksum does not match
-// 0 = checksum matches
-//============================================================
+/*! \fn BYTE computeCrc(const BYTE *data, BYTE nbrOfBytes)
+ *  \brief calculates checksum for n bytes of data
+ *  \param *data checksum is built based on this data
+ *  \param nbrOfBytes checksum is built for n bytes of data
+ *  \exception 
+ *  \return checksum
+ */
+static BYTE computeCrc(const BYTE *data, BYTE nbrOfBytes)
 {
 	BYTE crc = 0;
 	BYTE byteCtr;
@@ -173,19 +238,5 @@ BYTE computeCrc(BYTE *data, BYTE nbrOfBytes)
 	}
 	
 	return crc;
-	//if (crc != checksum)
-	//return CHECKSUM_ERROR;
-	//else return 0;
 }
 
-
-/*** Example of protocol
-
-|SYNC|DEST|SOURCE|DATA1|DATA0|CHKSUM|
-the checksum is generated like
-temp = SYNC + DEST + SOURCE + DATA1 + DATA0;
-CHKSUM = 0 - TEMP;
-now when you receive the data only have to check
-if the sum of all the recieved data is 0.
-
-***/

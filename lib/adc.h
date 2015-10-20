@@ -12,8 +12,8 @@
 #include "types.h"
 
 #define ADC_VREF 5.0					// Full scale voltage ! 5V
-#define ADC_RES_BIT 10			// Number of resolution bits of ADC
-#define ADC_RES		((2^10) - 1)	// Number of bit of ADC
+#define ADC_RES_BIT 10					// Number of resolution bits of ADC
+#define ADC_RES		((2^10) - 1)		// Number of bit of ADC
 
 
 void adc_init();

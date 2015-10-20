@@ -13,14 +13,13 @@
 #include "../lib/types.h"
 
 /*** DEFINE DEFINITION ***/
-
 #define TRUE 1
 #define FALSE 0
 #define ANGLE 0
 #define DUREE_ETAT_HAUT 1
 
 
-/*** Local variable ***/
+/*** Local variable stock in flash ***/
 static const __flash UINT angleToValue[181] =
 	{
 		1000, 1006, 1012, 1018, 1024, 1030, 1036, 1042, 1048, 1054,
@@ -51,7 +50,6 @@ extern SHORT pos;
 
 
 /*** PROTOTYPE ***/
-
 void pwm_activeInterrupt();
 void pwm_init();
 void pwm_rotationGauche(void);
@@ -59,6 +57,6 @@ void pwm_rotationDroite(void);
 void pwm_positionCentrale(void);
 void pwm_setPosition(UINT angle);
 //static UINT tableDeCalcul (UINT angle);
-
+BYTE pwm_getPosition(char typeSortie);
 
 #endif /* PWM_H_ */

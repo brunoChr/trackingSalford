@@ -21,8 +21,17 @@
  */
 void adc_init()
 {
+	/*
+		REFS1 REFS0 Voltage Reference Selection
+		0		0	AREF, Internal Vref turned off
+		0		1	AVCC with external capacitor at AREF pin
+		1		0	Reserved
+		1		1	Internal 2.56V Voltage Reference with external capacitor at AREF pin
+	*/
+	
 	// AREF = AVcc
-	ADMUX = (1<<REFS0); // Set bits REFS0
+	ADMUX = (1<<REFS0); // Set bits REFS0 : AVCC with external capacitor at AREF pin
+	ADMUX = (1<<REFS1);
 	
 	// ADC Enable and prescaler of 128
 	// F_CPU/128 = ...

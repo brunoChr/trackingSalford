@@ -51,8 +51,8 @@
 #define DELAY_TTRACKING		50					//!< Delay for task tracking in ms
 
 
-#define T_ACQ_IR	10	//<! \Acquisition period for IR in ms
-#define	T_ACQ_THERM 50	//<! \Acquisition period for thermal in ms
+#define T_ACQ_IR	5	//<! \Acquisition period for IR in ms
+#define	T_ACQ_THERM 10	//<! \Acquisition period for thermal in ms
 #define TIMEOUT_CMD	5	//<! \Timout in ms for received complete CMD : #x 
 
 
@@ -60,7 +60,8 @@
 #define DEBUG 0
 #define LCD	  0
 #define UART  1
-#define PWM   1
+#define PWM   0
+#define I2C	  1	
 #define VERBOSE 0		//<! \Make the system chatty
 
 
@@ -85,6 +86,11 @@ enum ReceiveCmd
 };
 
 
+/*!
+ * class.
+ * \extends 
+ * \brief
+ */ 
 typedef struct flagReceive
 {
 	BOOL start;
@@ -92,6 +98,11 @@ typedef struct flagReceive
 } flagReceive;
 
 
+/*!
+ * counter class.
+ * \extends cptIr, cptTherm, cptTimeoutCpt
+ * \brief Use as a general struct for handle counter
+ */ 
 typedef struct compteur
 {
 	BYTE cptIr;

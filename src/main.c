@@ -14,64 +14,53 @@
 #include "../lib/lcd.h"
 
 
+/*** LOCAL VARIABLE, MOVE TO .h ***/
+static BYTE thermal_Buff[THERMAL_BUFF_SIZE];					//!< \Buffer of temp, static because only use in main.c
+static BYTE *thermalDataPtr;									//!< \Pointer to the buffer temp
+static semaphore_t tick = {0};									//!< \A semaphore is incremented at every tick.
+static volatile UINT  distanceIRrLeft, distanceIrRight;			//!< \Distance from the sensor : static because only use in main, volatile because modified by different process
+volatile const UINT *ptrDistL = &distanceIRrLeft;				//!< \Pointer to distance adress because volatile UINT *  means "pointer to volatile UINT", const to be non modifiable	
+volatile const UINT *ptrDistR = &distanceIrRight;				//!< \Same
+static flagReceive flagRx;		//<! \Maybe structure is useless to see !!! WARNING !!
+static compteur cpt;			//<! \Struct use for counters : sensor ir, therm, timeout ...
+static BOOL flagSensorValueChanged;	//<! \Flag is set when data are ready
 
-/*** GLOBAL VARIABLE, MOVE TO .h ***/
 
-static BYTE thermal_Buff[THERMAL_BUFF_SIZE];		//!< \Buffer of temp
-static BYTE *thermalDataPtr;						//!< \Pointer to the buffer temp
-static semaphore_t tick = {0};						//!< \A semaphore is incremented at every tick.
-static UINT  distanceIRrLeft, distanceIrRight;
-const UINT *ptrDistL = &distanceIRrLeft;
-const UINT *ptrDistR = &distanceIrRight;
+/*** HELP ON POINTER ***/
+/* value of distance UINT : distanceIRrLeft, distanceIrRight
+ * ptr to volatile UINT : *ptrDistL, *ptrDistR
+ * address of distance :  &distanceIRrLeft, &distanceIrRight
+ * example : *ptrDistL = &distanceIRrLeft = 0x183 on declaration; in the code *(ptrDistL) = *(&distanceIRrLeft) = distanceIRrLeft = 523cm 
+*/
 
-static flagReceive flagRx;
-static compteur cpt; 
 
+/*** GLOBAL VARIABLE ***/
 SHORT pos;
-	
-	
-BOOL flagSensorValueChanged;
-//BOOL flagReceiveValue;
-BYTE bufferSerialRx[32];
+
+
+/*** GLOBAL FUNCTION ***/
+BOOL sendFrameTh(const BYTE *data, BYTE sizeData);
+BOOL sendFrameIr(BYTE id, UINT dataIr);
+BOOL sendFrameServo(BYTE id, BYTE position);
+
 
 /*** Prototype function main ***/
-
-static BYTE * getRandom();							//!< \Return a 16 byte array fill with random number
 static void setup(void);							//!< \Init function of the system
-void delay_ms(unsigned int t);				//!< \Wait ms
-
+void delay_ms(unsigned int t);						//!< \Wait ms
 void init_timer(unsigned int hz);
 void idle_task(void *p);
 uint8_t tick_interrupt();
 
 
-/*** WARNING ! MAYBE TURN INTO STATIC ***/
-void taskSensor(void *p);					//!< \Task update of sensor
+/*** WARNING ! MAYBE TURN INTO STATIC SEE RTOS ***/
+void taskSensor(void *p);						//!< \Task update of sensor
 void taskSerialTxRx(void *p);					//!< \Task serial communication emission
 void taskSerialCmd(void *p);					//!< \Task serial communication reception
-void taskTracking(void *p);					//!< \Task tracking
+void taskTracking(void *p);						//!< \Task tracking
+
 
 // [+]Setup the TIMER1_COMPA interrupt - it will be our tick interrupt.
 TASK_ISR(TIMER1_COMPA_vect, tick_interrupt());
-
-
-
-/*! \fn
- *  \brief
- *  \param 
- *  \param 
- *  \exception 
- *  \return
- */
-void my_itoa(int value, BYTE *buf, int base){
-	
-	int i = 30;
-	
-	buf = (BYTE *)"";
-	
-	for(; value && i ; --i, value /= base) (buf = "0123456789abcdef"[value % base] + buf);
-	
-}
 
 
 /*!
@@ -95,7 +84,7 @@ int main(void)
 	#if UART
 	printf("\n~ Board Ready ~\n");
 	#endif
-		
+	
 		
 	/*** WAITING ***/
 	#if DEBUG
@@ -128,6 +117,7 @@ int main(void)
 
 	// [+]Start the RTOS - note that this function will never return.
 	task_switcher_start(idle_task, 0, 65U, 80U);
+
 	
 	/*** NO INFINITE LOOP IN MAIN : RTOS RUN ***/
 		 	 
@@ -155,32 +145,6 @@ ISR(TIMER3_COMPA_vect)
 }
 
 
-
-/*! \fn
- *  \brief
- *  \param 
- *  \param 
- *  \exception 
- *  \return
- */
-/* function to generate and return random numbers */
-static BYTE * getRandom( )
-{
-	static BYTE  r[16];
-	int i;
-
-	/* set the seed */
-	srand(10);
-	for ( i = 0; i < 10; ++i)
-	{
-		r[i] = rand();
-		//printf( "r[%d] = %d\n", i, r[i]);
-	}
-
-	return r;
-}
-
-
 /*! \fn
  *  \brief
  *  \param 
@@ -193,7 +157,11 @@ static void setup(void)
 	/*** INIT ***/
 
 	port_init();
+	
+	#if UART
 	uart_init(9600);
+	#endif
+	
 	//servo_init();
 	adc_init();
 	
@@ -208,11 +176,13 @@ static void setup(void)
 	LCD_write("Team WTF");
 	#endif
 	
+	#if I2C
 	if(!twi_init(100000)) // Init I2C  with 100KHz bitrate.
 	{
 		printf("\nError in initiating I2C interface.");
 		while(1);
 	}
+	#endif
 	
 	/*** END OF INIT PART ***/
 }
@@ -262,15 +232,18 @@ void taskSensor(void *p)
 			flagSensorValueChanged = 1;
 		}
 		
+		/*** TEST LCD ***/
 		//my_itoa(distanceIrRight, lcdBuffer, 10);
 		//LCD_write(lcdBuffer);
-		//
 		//LCD_command(LCD_CLR);
+		
+		//printf("\r\nAddPtrDistR : %x  AddPtrDistL : %x *&distR %d *&distL %d", ptrDistR, ptrDistL, *(&distanceIrRight), *(&distanceIRrLeft));
 		
 		//if((++cpt.cptIr < 255) && (++cpt.cptTherm < 255)); //<! \increment cpt every ms
 		cpt.cptIr++;
 		cpt.cptTherm++;
-		
+
+		//printf("\r\nTsensor");
 		delay_ms(DELAY_TSENSOR);
 	}
 }
@@ -293,7 +266,8 @@ void taskSerialTxRx(void *p)
 	{	
 		//printf("\n\rKnbit : %d", uart_kbhit());
 		if(uart_kbhit())
-		{			
+		{		
+				
 			if((rxData = uart_getchar()))
 			{
 				if(rxData == CMD_START)
@@ -306,18 +280,23 @@ void taskSerialTxRx(void *p)
 					uart_putchar('C');
 					#endif 
 				}
-				USART_Flush();
+				//USART_Flush();
+				#if VERBOSE
+				uart_putchar(rxData);			//<! \Echo before flush
+				#endif
+				
 				rxData = ' ';
 			}
 		
 			if(flagRx.start)
 			{
-				//printf("\r\nStart");
-				//printf("\n\rKnbit : %d", uart_kbhit());
-				
-				rxData = ' ';
+				//rxData = ' ';
 				if ((rxData = uart_getchar()))
 				{
+					#if VERBOSE
+					uart_putchar(rxData);			//<! \Echo before flush
+					#endif
+					
 					/*if((cpt.cptTimeoutCpt - timeout) < TIMEOUT_CMD) break;
 						flagRx.start = 0; -> don't rece;
 					*/ 
@@ -335,13 +314,12 @@ void taskSerialTxRx(void *p)
 						/*** WARNING ! MAYBE INTRODUCE A DELAY HERE ***/
 					
 						/*** TEST RIR ***/
-						sendFrame(IR_L_SENSOR, (BYTE *)ptrDistL, 2);
+						sendFrameIr(IR_L_SENSOR, distanceIRrLeft);
 					
 						flagRx.start = 0;
 					}
 					else if(rxData == CMD_IRR)
 					{
-						//printf("\r\nCMD IRR");
 						#if VERBOSE
 						uart_putchar('R');
 						uart_putchar('\n');
@@ -354,8 +332,7 @@ void taskSerialTxRx(void *p)
 						/*** WARNING ! MAYBE INTRODUCE A DELAY HERE ***/
 										
 						/*** TEST RIR ***/
-						sendFrame(IR_R_SENSOR, (BYTE *)ptrDistR, 2);
-					
+						sendFrameIr(IR_R_SENSOR, distanceIrRight);
 					
 						flagRx.start = 0;
 					}
@@ -374,7 +351,7 @@ void taskSerialTxRx(void *p)
 						/*** WARNING ! MAYBE INTRODUCE A DELAY HERE ***/
 										
 						/*** TEST THERMAL SENSOR ***/
-						sendFrame(THERMAL_SENSOR, thermalDataPtr, NBR_DATA_THERM);
+						sendFrameTh(thermalDataPtr, NBR_DATA);
 										
 						flagRx.start = 0;
 					}
@@ -391,6 +368,8 @@ void taskSerialTxRx(void *p)
 						uart_putchar(CARAC_ACK);
 										
 						/*** WARNING ! MAYBE INTRODUCE A DELAY HERE ***/
+							
+						sendFrameServo(SERVO_MOTOR,pos);
 										
 						/*** TEST SEND SERVO ***/
 						flagRx.start = 0;
@@ -411,7 +390,7 @@ void taskSerialTxRx(void *p)
 						//printf("\r\nCMD UNKNOWN");
 						flagRx.start = 0;
 					}
-					USART_Flush();
+					//USART_Flush();
 					rxData = ' ';
 				}
 			}
@@ -480,25 +459,25 @@ void taskSerialCmd(void *p)
 
 void taskTracking(void *p)
 {
-	pos = 90;
-	int newPos = 0;
+	//pos = 90;
+	//int newPos = 0;
 	
 	while(1)
 	{
 		if((rxData = uart_getchar()) == '-')
 		{
-			pos -= 10;
+			if(--pos >= -90);
 		}
 		else if (rxData  == '+')
 		{
-			pos += 10;
+			if(++pos <= 90);
 		}
 			
 		pwm_setPosition(pos);	
 		//newPos = tracking(pos, ptrDistR, ptrDistL);
 		//pos = newPos;
-
-		//printf("\r\nDistR : %d  DistL : %d", (*ptrDistR), (*ptrDistL));
+		
+		///*** TEST PWM SERVO ***/
 		/*pwm_rotationDroite();
 		_delay_ms(500);
 		pwm_positionCentrale();
@@ -506,38 +485,6 @@ void taskTracking(void *p)
 		pwm_rotationGauche();
 		_delay_ms(500);*/
 		
-		///*** TEST PWM SERVO ***/
-				
-		//if(pos < 80)
-		//{
-		//pwm_setPosition((pos));
-		//pos += 1;
-		//}
-		//else
-		//{
-		//pos = -90;
-		//}
-		
-		//if(rxData == 'o')
-		//{
-			//if (flagSensorValueChanged == 1)
-			//{
-				//flagSensorValueChanged = 0;
-				//printf("%d;%d\n",distanceIRrLeft, distanceIrRight);
-			//}
-			//
-			//rxData = ' ';
-			//
-			//printf("\n\rLog value");
-		//}
-		//
-		//else if (rxData == 's')
-		//{			
-			//printf("\n\rStop log ir ...");
-			//
-			//rxData = ' ';
-		//}
-
 		//printf("\ntTrack");		
 		delay_ms(DELAY_TTRACKING);
 	}	
