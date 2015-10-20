@@ -81,8 +81,8 @@ enum ReceiveCmd
 	CMD_IRL = '2',
 	CMD_THERM = '3',
 	CMD_SERVO = '4',
-	CMD_SERVO_TURN_LEFT = '5';
-	CMD_SERVO_TURN_RIGHT = '6';
+	CMD_SERVO_TURN_LEFT = '5',
+	CMD_SERVO_TURN_RIGHT = '6',
 	CARAC_ACK = 'A',
 	CARAC_NACK = 'N',
 };
