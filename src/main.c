@@ -24,7 +24,7 @@ volatile const UINT *ptrDistR = &distanceIrRight;				//!< \Same
 static flagReceive flagRx;		//<! \Maybe structure is useless to see !!! WARNING !!
 static compteur cpt;			//<! \Struct use for counters : sensor ir, therm, timeout ...
 static BOOL flagSensorValueChanged;	//<! \Flag is set when data are ready
-
+static SHORT flagTurn;
 
 /*** HELP ON POINTER ***/
 /* value of distance UINT : distanceIRrLeft, distanceIrRight
@@ -374,6 +374,44 @@ void taskSerialTxRx(void *p)
 						/*** TEST SEND SERVO ***/
 						flagRx.start = 0;
 					}
+					
+					else if(rxData == CMD_SERVO_TURN_LEFT)
+					{
+						//printf("\r\nCMD SERVO");
+						#if VERBOSE
+						uart_putchar('Tl');
+						uart_putchar('\n');
+						#endif
+
+						/*** Ack ***/
+						uart_putchar(CMD_START);
+						uart_putchar(CARAC_ACK);
+						
+						/*** WARNING ! MAYBE INTRODUCE A DELAY HERE ***/
+						
+						/*** TEST SEND SERVO ***/
+						flagTurn = TURN_LEFT;
+						flagRx.start = 0;
+					}
+
+					else if(rxData == CMD_SERVO_TURN_RIGHT)
+					{
+						//printf("\r\nCMD SERVO");
+						#if VERBOSE
+						uart_putchar('Tr');
+						uart_putchar('\n');
+						#endif
+
+						/*** Ack ***/
+						uart_putchar(CMD_START);
+						uart_putchar(CARAC_ACK);
+						
+						/*** WARNING ! MAYBE INTRODUCE A DELAY HERE ***/
+						
+						/*** TEST SEND SERVO ***/
+						flagTurn = TURN_RIGHT;
+						flagRx.start = 0;
+					}
 					else
 					{
 						#if VERBOSE
@@ -464,6 +502,24 @@ void taskTracking(void *p)
 	
 	while(1)
 	{
+		if (flagTurn == TURN_LEFT)
+		{
+			flagTurn = 0;
+			pos -= 10;
+			
+		}
+		else if (flagTurn == TURN_RIGHT)
+		{
+			flagTurn = 0;
+			pos += 10;
+			
+		}
+		else
+		{
+			flagTurn = 0;
+		}
+		pwm_setPosition(pos);
+		/*
 		if((rxData = uart_getchar()) == '-')
 		{
 			if(--pos >= -90);
@@ -474,6 +530,7 @@ void taskTracking(void *p)
 		}
 			
 		pwm_setPosition(pos);	
+		*/
 		//newPos = tracking(pos, ptrDistR, ptrDistL);
 		//pos = newPos;
 		

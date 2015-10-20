@@ -17,6 +17,8 @@
 #define FALSE 0
 #define ANGLE 0
 #define DUREE_ETAT_HAUT 1
+#define TURN_LEFT 1
+#define TURN_RIGHT 2
 
 
 /*** Local variable stock in flash ***/
@@ -47,7 +49,6 @@ static const __flash UINT angleToValue[181] =
 
 /*** Global variable ***/
 extern SHORT pos;
-
 
 /*** PROTOTYPE ***/
 void pwm_activeInterrupt();
