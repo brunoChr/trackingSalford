@@ -27,6 +27,9 @@ const UINT *ptrDistR = &distanceIrRight;
 static flagReceive flagRx;
 static compteur cpt; 
 
+SHORT pos;
+	
+	
 BOOL flagSensorValueChanged;
 //BOOL flagReceiveValue;
 BYTE bufferSerialRx[32];
@@ -115,10 +118,10 @@ int main(void)
 
 	// [+]Create tasks.
 	/*** WARNING !!  Priority and Buffer NEED TO BE VERIFY ***/
-	create_task(taskSensor, 0, 0, 65U, 100U, 0);		//<! \Size of stack & Priority
-	create_task(taskSerialTxRx, 0, 0, 80U, 60U, 0);
-	create_task(taskSerialCmd, 0, 0, 100U, 60U,  0);
-	//create_task(taskTracking, 0, 0, 100U, 40U,  0);
+	create_task(taskSensor, 0, 0, 150U, 100U, 0);		//<! \Size of stack & Priority
+	create_task(taskSerialTxRx, 0, 0, 150U, 80U, 0);
+	//create_task(taskSerialCmd, 0, 0, 100U, 60U,  0);
+	create_task(taskTracking, 0, 0, 100U, 70U,  0);
 	
 
 	init_timer(5000U);	//!< \Set TIMER1_COMPA interrupt to tick every 80,000 clock cycles.
@@ -241,7 +244,7 @@ void taskSensor(void *p)
 	{
 		//printf("\nUart : %d", uart_kbhit());
 		//uart_putchar('a');
-		
+
 		//<! \Timing : 1 Sample every 10ms for IR
 		if (cpt.cptIr == T_ACQ_IR)
 		{
@@ -264,9 +267,10 @@ void taskSensor(void *p)
 		//
 		//LCD_command(LCD_CLR);
 		
-		if((++cpt.cptIr < 255) && (++cpt.cptTherm < 255)); //<! \increment cpt every ms
+		//if((++cpt.cptIr < 255) && (++cpt.cptTherm < 255)); //<! \increment cpt every ms
+		cpt.cptIr++;
+		cpt.cptTherm++;
 		
-		//printf("\ntSensor");
 		delay_ms(DELAY_TSENSOR);
 	}
 }
@@ -283,134 +287,139 @@ volatile char rxData = ' ';
 
 void taskSerialTxRx(void *p)
 {
-	static UINT timeout;
+	//static UINT timeout;
 	
 	while(1)
 	{	
-		//printf("\ntRxTx");
-		
-		if((rxData = uart_getchar()))
-		{
-			if(rxData == CMD_START)
-			{	
-				flagRx.start = 1;
-				timeout = cpt.cptTimeoutCpt;
-				
-				#if VERBOSE
-				uart_putchar('\n');
-				uart_putchar('C');
-				#endif 
-			}
-			
-			rxData = ' ';
-		}
-		
-		if(flagRx.start)
-		{
-			//printf("\r\nStart");
-			
-			//rxData = ' ';
-			if ((rxData = uart_getchar()))
+		//printf("\n\rKnbit : %d", uart_kbhit());
+		if(uart_kbhit())
+		{			
+			if((rxData = uart_getchar()))
 			{
-				/*if((cpt.cptTimeoutCpt - timeout) < TIMEOUT_CMD) break;
-					flagRx.start = 0; -> don't rece;
-				*/ 
-				if (rxData == CMD_IRL)
-				{
-					#if VERBOSE
-					uart_putchar('L');
-					uart_putchar('\n');
-					#endif
-					
-					/*** Ack ***/
-					uart_putchar(CMD_START);
-					uart_putchar(CARAC_ACK);
-					
-					/*** WARNING ! MAYBE INTRODUCE A DELAY HERE ***/
-					
-					/*** TEST RIR ***/
-					sendFrame(IR_L_SENSOR, (BYTE *)ptrDistL, 2);
-					
-					flagRx.start = 0;
-				}
-				else if(rxData == CMD_IRR)
-				{
-					//printf("\r\nCMD IRR");
-					#if VERBOSE
-					uart_putchar('R');
-					uart_putchar('\n');
-					#endif
-					
-					/*** Ack ***/
-					uart_putchar(CMD_START);
-					uart_putchar(CARAC_ACK);
-							
-					/*** WARNING ! MAYBE INTRODUCE A DELAY HERE ***/
-										
-					/*** TEST RIR ***/
-					sendFrame(IR_R_SENSOR, (BYTE *)ptrDistR, 2);
-					
-					
-					flagRx.start = 0;
-				}
-				else if(rxData == CMD_THERM)
-				{
-					//printf("\r\nCMD THERM");
-					#if VERBOSE
-					uart_putchar('T');
-					uart_putchar('\n');
-					#endif
-					
-					/*** Ack ***/
-					uart_putchar(CMD_START);
-					uart_putchar(CARAC_ACK);
-										
-					/*** WARNING ! MAYBE INTRODUCE A DELAY HERE ***/
-										
-					/*** TEST THERMAL SENSOR ***/
-					sendFrame(THERMAL_SENSOR, thermalDataPtr, NBR_DATA_THERM);
-										
-					flagRx.start = 0;
-				}
-				else if(rxData == CMD_SERVO)
-				{
-					//printf("\r\nCMD SERVO");
-					#if VERBOSE
-					uart_putchar('S');
-					uart_putchar('\n');
-					#endif
-					
-					/*** Ack ***/
-					uart_putchar(CMD_START);
-					uart_putchar(CARAC_ACK);
-										
-					/*** WARNING ! MAYBE INTRODUCE A DELAY HERE ***/
-										
-					/*** TEST SEND SERVO ***/
-					flagRx.start = 0;
-				}
-				else
-				{
-					#if VERBOSE
-					uart_putchar('U');
-					uart_putchar('\n');
-					#endif
-					
-					/*** Non Ack ***/
-					uart_putchar(CMD_START);
-					uart_putchar(CARAC_NACK);
-										
-					/*** WARNING ! MAYBE INTRODUCE A DELAY HERE ***/
-										
-					//printf("\r\nCMD UNKNOWN");
-					flagRx.start = 0;
-				}
+				if(rxData == CMD_START)
+				{	
+					flagRx.start = 1;
+					//timeout = cpt.cptTimeoutCpt;
 				
+					#if VERBOSE
+					uart_putchar('\n');
+					uart_putchar('C');
+					#endif 
+				}
+				USART_Flush();
 				rxData = ' ';
 			}
+		
+			if(flagRx.start)
+			{
+				//printf("\r\nStart");
+				//printf("\n\rKnbit : %d", uart_kbhit());
+				
+				rxData = ' ';
+				if ((rxData = uart_getchar()))
+				{
+					/*if((cpt.cptTimeoutCpt - timeout) < TIMEOUT_CMD) break;
+						flagRx.start = 0; -> don't rece;
+					*/ 
+					if (rxData == CMD_IRL)
+					{
+						#if VERBOSE
+						uart_putchar('L');
+						uart_putchar('\n');
+						#endif
+					
+						/*** Ack ***/
+						uart_putchar(CMD_START);
+						uart_putchar(CARAC_ACK);
+					
+						/*** WARNING ! MAYBE INTRODUCE A DELAY HERE ***/
+					
+						/*** TEST RIR ***/
+						sendFrame(IR_L_SENSOR, (BYTE *)ptrDistL, 2);
+					
+						flagRx.start = 0;
+					}
+					else if(rxData == CMD_IRR)
+					{
+						//printf("\r\nCMD IRR");
+						#if VERBOSE
+						uart_putchar('R');
+						uart_putchar('\n');
+						#endif
+					
+						/*** Ack ***/
+						uart_putchar(CMD_START);
+						uart_putchar(CARAC_ACK);
+							
+						/*** WARNING ! MAYBE INTRODUCE A DELAY HERE ***/
+										
+						/*** TEST RIR ***/
+						sendFrame(IR_R_SENSOR, (BYTE *)ptrDistR, 2);
+					
+					
+						flagRx.start = 0;
+					}
+					else if(rxData == CMD_THERM)
+					{
+						//printf("\r\nCMD THERM");
+						#if VERBOSE
+						uart_putchar('T');
+						uart_putchar('\n');
+						#endif
+					
+						/*** Ack ***/
+						uart_putchar(CMD_START);
+						uart_putchar(CARAC_ACK);
+										
+						/*** WARNING ! MAYBE INTRODUCE A DELAY HERE ***/
+										
+						/*** TEST THERMAL SENSOR ***/
+						sendFrame(THERMAL_SENSOR, thermalDataPtr, NBR_DATA_THERM);
+										
+						flagRx.start = 0;
+					}
+					else if(rxData == CMD_SERVO)
+					{
+						//printf("\r\nCMD SERVO");
+						#if VERBOSE
+						uart_putchar('S');
+						uart_putchar('\n');
+						#endif
+					
+						/*** Ack ***/
+						uart_putchar(CMD_START);
+						uart_putchar(CARAC_ACK);
+										
+						/*** WARNING ! MAYBE INTRODUCE A DELAY HERE ***/
+										
+						/*** TEST SEND SERVO ***/
+						flagRx.start = 0;
+					}
+					else
+					{
+						#if VERBOSE
+						uart_putchar('U');
+						uart_putchar('\n');
+						#endif
+					
+						/*** Non Ack ***/
+						uart_putchar(CMD_START);
+						uart_putchar(CARAC_NACK);
+										
+						/*** WARNING ! MAYBE INTRODUCE A DELAY HERE ***/
+										
+						//printf("\r\nCMD UNKNOWN");
+						flagRx.start = 0;
+					}
+					USART_Flush();
+					rxData = ' ';
+				}
+			}
 		}
 		
-		if(++cpt.cptTimeoutCpt < 65535);
+		//printf("\ntRxTx");	
+		//if(++cpt.cptTimeoutCpt < 65535);
+		//cpt.cptTimeoutCpt++;
 		delay_ms(DELAY_TSERIALTX);
 	}
 }
@@ -471,21 +480,31 @@ void taskSerialCmd(void *p)
 
 void taskTracking(void *p)
 {
-	//pos = 90;
+	pos = 90;
 	int newPos = 0;
 	
 	while(1)
 	{
-		/*
-		newPos = tracking(pos);
-		pos = newPos;
-		*/
-		//pwm_setPosition(10);
-		//_delay_ms(200);
-		//pwm_setPosition(90);
-		//_delay_ms(200);
-		//pwm_setPosition(180);
-		//_delay_ms(200);
+		if((rxData = uart_getchar()) == '-')
+		{
+			pos -= 10;
+		}
+		else if (rxData  == '+')
+		{
+			pos += 10;
+		}
+			
+		pwm_setPosition(pos);	
+		//newPos = tracking(pos, ptrDistR, ptrDistL);
+		//pos = newPos;
+
+		//printf("\r\nDistR : %d  DistL : %d", (*ptrDistR), (*ptrDistL));
+		/*pwm_rotationDroite();
+		_delay_ms(500);
+		pwm_positionCentrale();
+		_delay_ms(500);
+		pwm_rotationGauche();
+		_delay_ms(500);*/
 		
 		///*** TEST PWM SERVO ***/
 				

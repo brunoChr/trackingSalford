@@ -35,8 +35,10 @@ CHAR uart_getchar(void)
 BOOL uart_kbhit(void)
 {
 	// [+]Return nonzero if char waiting polled version.
-	if(UCSR0A & (1<<RXC0))
+	if(UCSR0A & (1<<RXC0)){
 	return(TRUE);
+	uart_putchar('C');
+	}
 	return(FALSE);
 }
 

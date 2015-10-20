@@ -48,7 +48,8 @@ BOOL sendFrame(BYTE dataType, BYTE *data, BYTE sizeData)
 {
 	if(data == 0)
 	{
-		return 1;
+		printf("\nData frame null");
+		return -1;
 	}
 	
 	
@@ -73,6 +74,7 @@ BOOL sendFrame(BYTE dataType, BYTE *data, BYTE sizeData)
 		break;
 		
 		default :
+			printf("\nData frame null");
 			return -1;
 		break;	
 	}
