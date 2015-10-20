@@ -19,6 +19,7 @@
 #define DISTANCE_MAX 1500
 #define DISTANCE_MIN 200
 
+
 /*! \fn int info_tracking(int8_t distanceIrRight, int8_t distanceIrLeft)
  *  \brief inform about the direction the pwm need to follow
  *  \param distanceIrRight : distance read by the right infrared sensor
@@ -27,8 +28,10 @@
  *  \return direction
  */
 
-int info_tracking(UINT distanceIrRight, UINT distanceIrLeft)
+static int info_tracking(UINT distanceIrRight, UINT distanceIrLeft)
 {
+	printf("\r\nDistR : %d  DistL : %d", distanceIrRight, distanceIrLeft);
+	
 	//!< if the value from both right and left sensors are out of the range (distance > 150 cm)
 	if ((distanceIrRight >= DISTANCE_MAX) && (distanceIrLeft >= DISTANCE_MAX))
 	{
@@ -61,7 +64,8 @@ int info_tracking(UINT distanceIrRight, UINT distanceIrLeft)
 	return 0;
 }
 
-unsigned int tracking(int position)
+
+UINT tracking(int position, const UINT *ptrDistL,const UINT *ptrDistR)
 {
 	/*! \fn unsigned int tracking(UINT distanceIrRight, UINT distanceIrLeft, int position)
 	*	\brief follow the target according to the information given by the function "info_tracking"
@@ -71,13 +75,10 @@ unsigned int tracking(int position)
 	*	\exception
 	*	\return the new position of the servo, in degrees
 	*/
-	UINT distanceIrRight, distanceIrLeft;
 	
-	distanceIrRight = readInfrared(0);
-	distanceIrLeft = readInfrared(1);
-	
-	switch(info_tracking(distanceIrRight, distanceIrLeft))
+	switch(info_tracking(*ptrDistR, *ptrDistL))
 	{
+		printf("\r\nDistR : %d  DistL : %d", (*ptrDistR), (*ptrDistL));
 		case OUT_OF_RANGE:
 			pwm_positionCentrale();
 			return 90;
