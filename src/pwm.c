@@ -10,7 +10,7 @@
 #include <avr/interrupt.h>
 
 /*** Local variable file ***/
-static SHORT pos;
+SHORT pos;
 
 /*! \fn
  *  \brief
@@ -19,32 +19,8 @@ static SHORT pos;
  *  \exception 
  *  \return
  */
-unsigned int tableDeCalcul(unsigned int angle)
-{
-	unsigned int angleToValue[181] = 
-		{
-			1000, 1006, 1012, 1018, 1024, 1030, 1036, 1042, 1048, 1054,
-			1060, 1066, 1072, 1078, 1084, 1090, 1096, 1102, 1108,
-			1114, 1120, 1126, 1132, 1138, 1144, 1150, 1156, 1162,
-			1168, 1174, 1180, 1186, 1192, 1198, 1204, 1210, 1216,
-			1222, 1228, 1234, 1240, 1246, 1252, 1258, 1264, 1270,
-			1276, 1282, 1288, 1294, 1300, 1306, 1312, 1318, 1324,
-			1330, 1336, 1342, 1348, 1354, 1360, 1366, 1372, 1378,
-			1384, 1390, 1396, 1402, 1408, 1414, 1420, 1426, 1432,
-			1438, 1444, 1450, 1456, 1462, 1468, 1474, 1480, 1486,
-			1492, 1498, 1504, 1510, 1516, 1522, 1528, 1534, 1540,
-			1546, 1552, 1558, 1564, 1570, 1576, 1582, 1588, 1594,
-			1600, 1606, 1612, 1618, 1624, 1630, 1636, 1642, 1648,
-			1654, 1660, 1666, 1672, 1678, 1684, 1690, 1696, 1702,
-			1708, 1714, 1720, 1726, 1732, 1738, 1744, 1750, 1756,
-			1762, 1768, 1774, 1780, 1786, 1792, 1798, 1804, 1810,
-			1816, 1822, 1828, 1834, 1840, 1846, 1852, 1858, 1864,
-			1870, 1876, 1882, 1888, 1894, 1900, 1906, 1912, 1918,
-			1924, 1930, 1936, 1942, 1948, 1954, 1960, 1966, 1972,
-			1978, 1984, 1990, 1996, 2002, 2008, 2014, 2020, 2026,
-			2032, 2038, 2044, 2050, 2056, 2062, 2068, 2074, 2080
-		};
-		
+static UINT tableDeCalcul(UINT angle)
+{		
 	return angleToValue[angle];
 }
 
@@ -80,10 +56,9 @@ void pwm_init()
 	* Initialisation du PWM
 	*/
 
-	//sei(); // Activation des interruptions globales
+	//sei(); // Interrupt are enable at RTOS startup
 	
-	//pwm_activeInterrupt();
-	pwm_positionCentrale();
+	//pwm_positionCentrale();
 	
 	/*Utilisation du port B*/
 	DDRE |= (1 << DDE3);// PORTE3 en sortie
@@ -121,6 +96,7 @@ void pwm_init()
 	TCCR3B |= (1 << CS31);
 	TCCR3B |= (0 << CS30);
 	
+	pwm_activeInterrupt();
 }
 
 
@@ -206,7 +182,7 @@ void pwm_setPosition(unsigned int angle)
 
 }
 
-unsigned int pwm_getPosition(char typeSortie)
+UINT pwm_getPosition(char typeSortie)
 {
 	/*! \fn unsigned int pwm_getPosition(int typeSortie)
 	*	\brief Give back the position of the servo, in degrees or in milliseconds

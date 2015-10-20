@@ -46,7 +46,7 @@
 #define DEBUG 0								//!< \Debug macro
 
 #define DELAY_TSENSOR		1					//!< Delay for task sensor in ms
-#define DELAY_TSERIALTX		1					//!< Delay for task serial tx in ms
+#define DELAY_TSERIALTX		5					//!< Delay for task serial tx in ms
 #define DELAY_TSERIALRX		5					//!< Delay for task serial rx in ms
 #define DELAY_TTRACKING		50					//!< Delay for task tracking in ms
 
@@ -60,7 +60,7 @@
 #define DEBUG 0
 #define LCD	  0
 #define UART  1
-#define PWM   0
+#define PWM   1
 #define VERBOSE 0		//<! \Make the system chatty
 
 
