@@ -51,16 +51,17 @@
 #define DELAY_TTRACKING		50					//!< Delay for task tracking in ms
 
 
-#define T_ACQ_IR	5	//<! \Acquisition period for IR in ms
+#define T_ACQ_IR	1	//<! \Acquisition period for IR in ms
 #define	T_ACQ_THERM 10	//<! \Acquisition period for thermal in ms
 #define TIMEOUT_CMD	5	//<! \Timout in ms for received complete CMD : #x 
 
+#define DELAY_CMD	200	//in us
 
 /*** WARNING MACRO USE FOR DEBUGGING, WILL BE DELETE ***/
 #define DEBUG 0
 #define LCD	  0
 #define UART  1
-#define PWM   0
+#define PWM   1
 #define I2C	  1	
 #define VERBOSE 0		//<! \Make the system chatty
 

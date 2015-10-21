@@ -312,7 +312,8 @@ void taskSerialTxRx(void *p)
 						uart_putchar(CARAC_ACK);
 					
 						/*** WARNING ! MAYBE INTRODUCE A DELAY HERE ***/
-					
+						_delay_us(DELAY_CMD);
+						
 						/*** TEST RIR ***/
 						sendFrameIr(IR_L_SENSOR, distanceIRrLeft);
 					
@@ -330,6 +331,7 @@ void taskSerialTxRx(void *p)
 						uart_putchar(CARAC_ACK);
 							
 						/*** WARNING ! MAYBE INTRODUCE A DELAY HERE ***/
+						_delay_us(DELAY_CMD);
 										
 						/*** TEST RIR ***/
 						sendFrameIr(IR_R_SENSOR, distanceIrRight);
@@ -349,6 +351,7 @@ void taskSerialTxRx(void *p)
 						uart_putchar(CARAC_ACK);
 										
 						/*** WARNING ! MAYBE INTRODUCE A DELAY HERE ***/
+						_delay_us(DELAY_CMD);
 										
 						/*** TEST THERMAL SENSOR ***/
 						sendFrameTh(thermalDataPtr, NBR_DATA);
@@ -368,6 +371,7 @@ void taskSerialTxRx(void *p)
 						uart_putchar(CARAC_ACK);
 										
 						/*** WARNING ! MAYBE INTRODUCE A DELAY HERE ***/
+						_delay_us(DELAY_CMD);
 							
 						sendFrameServo(SERVO_MOTOR,pos);
 										
@@ -379,7 +383,7 @@ void taskSerialTxRx(void *p)
 					{
 						//printf("\r\nCMD SERVO");
 						#if VERBOSE
-						uart_putchar('Tl');
+						uart_putchar('L');
 						uart_putchar('\n');
 						#endif
 
@@ -388,6 +392,7 @@ void taskSerialTxRx(void *p)
 						uart_putchar(CARAC_ACK);
 						
 						/*** WARNING ! MAYBE INTRODUCE A DELAY HERE ***/
+						_delay_us(DELAY_CMD);
 						
 						/*** TEST SEND SERVO ***/
 						flagTurn = TURN_LEFT;
@@ -398,7 +403,7 @@ void taskSerialTxRx(void *p)
 					{
 						//printf("\r\nCMD SERVO");
 						#if VERBOSE
-						uart_putchar('Tr');
+						uart_putchar('R');
 						uart_putchar('\n');
 						#endif
 
@@ -505,19 +510,21 @@ void taskTracking(void *p)
 		if (flagTurn == TURN_LEFT)
 		{
 			flagTurn = 0;
-			pos -= 10;
+			if(pos > 0 ) pos -= 10;
+			else pos = 0;
 			
 		}
 		else if (flagTurn == TURN_RIGHT)
 		{
 			flagTurn = 0;
-			pos += 10;
-			
+			if(pos < 180 ) pos += 10;
+			else pos = 180;
 		}
 		else
 		{
 			flagTurn = 0;
 		}
+		
 		pwm_setPosition(pos);
 		/*
 		if((rxData = uart_getchar()) == '-')
