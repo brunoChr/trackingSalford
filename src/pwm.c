@@ -59,7 +59,7 @@ void pwm_init()
 
 	//sei(); // Interrupt are enable at RTOS startup
 	
-	pwm_positionCentrale();
+	//pwm_positionCentrale();
 	
 	/*Utilisation du port B*/
 	DDRE |= (1 << DDE3);// PORTE3 en sortie
@@ -73,8 +73,8 @@ void pwm_init()
 	* Valeur de TOP pour l'overflow = 19 999
 	*/
 
-	ICR3 = 19999;
-	//ICR3 = 2500;
+	//ICR3 = 19999;
+	ICR3 = 24999;
 
 	TCCR3B |= (1 << WGM33);
 	TCCR3B |= (1 << WGM32);
@@ -92,11 +92,17 @@ void pwm_init()
 	1		1		0		External clock source on Tn pin. Clock on falling edge
 	1		1		1		External clock source on Tn pin. Clock on rising edge*/
 	
-	/*Clk (Prescaler : 8)*/
+	///*Clk (Prescaler : 8)*/
 	TCCR3B |= (0 << CS32);
 	TCCR3B |= (1 << CS31);
 	TCCR3B |= (0 << CS30);
 	
+	
+	/*Clk (Prescaler : 1024)*/
+	//TCCR3B |= (1 << CS32);
+	//TCCR3B |= (0 << CS31);
+	//TCCR3B |= (1 << CS30);
+		
 	pwm_activeInterrupt();
 }
 
@@ -149,7 +155,7 @@ void pwm_positionCentrale(void)
  *  \exception 
  *  \return
  */
-void pwm_setPosition(unsigned int angle)
+void pwm_setPosition(UINT angle)
 {
 	/*
 	Controle de la rotation en PWM
@@ -166,18 +172,23 @@ void pwm_setPosition(unsigned int angle)
 	//Gestion des valeurs dépassant les valeurs extremes
 	if(angle >= 180)
 	{
-		pwm_rotationDroite();
+		angle = 180;
+		//pwm_rotationDroite();
 		pos = 180;
 	}
-	else if (angle <= (0))
+	else if (angle <= 0)
 	{
-		pwm_rotationGauche();
+		//pwm_rotationGauche();
+		angle = 0;
 		pos = 0;
 	}
 	//Gestion des valeurs comprise dans l'intervalle utile
 	else
 	{
+		//OCR3AL = (BYTE)(tableDeCalcul(angle) & 0xFF);
+		//OCR3AH = (BYTE)(tableDeCalcul(angle) >> 8);
 		OCR3A = tableDeCalcul(angle);
+		//printf("\n\rOCR3A : %d", OCR3A);
 		pos = angle;
 	}
 
