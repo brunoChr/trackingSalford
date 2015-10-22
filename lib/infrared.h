@@ -92,6 +92,7 @@ static const __flash UINT lookupIR[SIZE_LUT_IR] =
 /*** PROTOTYPE GLOBAL FUNCTION ***/
 //int sharp_IR_interpret_GP2Y0A02YK(int value);
 //extern UINT lookupInfrared(UINT indexLut);
+extern UINT readInfraredFilter(BYTE adcPin);
 extern UINT readInfrared(BYTE adcPin);
 
 #endif /* INFRARED_H_ */

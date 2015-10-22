@@ -218,8 +218,8 @@ void taskSensor(void *p)
 		//<! \Timing : 1 Sample every 10ms for IR
 		if (cpt.cptIr == T_ACQ_IR)
 		{
-			distanceIrRight = readInfrared(ADC_CH_IR_RIGHT);
-			distanceIRrLeft = readInfrared(ADC_CH_IR_LEFT);
+			distanceIrRight = readInfraredFilter(ADC_CH_IR_RIGHT);
+			distanceIRrLeft = readInfraredFilter(ADC_CH_IR_LEFT);
 			cpt.cptIr = 0;								//<! \Reset cpt
 			flagSensorValueChanged = 1;
 		}

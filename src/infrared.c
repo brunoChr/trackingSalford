@@ -22,8 +22,8 @@ static UINT value;						//!< Returned value of the lookup Table
 static UINT lookupInfrared(UINT adcResul);
 
 /*** GLOBAL FUNCTION PROTOTYPE ***/
+UINT readInfraredFilter(BYTE adcPin);
 UINT readInfrared(BYTE adcPin);
-
 
 
 /*	TODO
@@ -58,13 +58,13 @@ static UINT lookupInfrared(UINT adcResul)
 
 /*** WARNING ! SORTING NOT OPTIMIZED, LOOK LECTURE ON SORTING ***/
 
-/*! \fn UINT lookupInfrared(UINT indexLut) 
+/*! \fn UINT readInfrared(BYTE adcPin) 
  *  \brief Acquire IR, sort, apply median and average
  *		   mode filter = median filter + average filter	
  *  \param 
  *  \return Clean IR acquisition
  */
-UINT readInfrared(BYTE adcPin)
+UINT readInfraredFilter(BYTE adcPin)
 {
 	//<! \read multiple values and sort them to take the mode (median)	
 	for(iMed = 0; iMed < NUM_READS_ADC; iMed++)		//<! \Loop for acquisition (10 ~= 400ms) TO VERIFIED
@@ -110,5 +110,10 @@ UINT readInfrared(BYTE adcPin)
 }
 
 
-
+UINT readInfrared(BYTE adcPin)
+{
+	adcResultCh = adc_read(adcPin);	
+	
+	return lookupInfrared(adcResultCh);
+}
 
