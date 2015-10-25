@@ -12,6 +12,7 @@
 #include "../lib/main.h"
 #include "../lib/tracking.h"
 #include "../lib/lcd.h"
+#include "../lib/servo.h"
 
 
 /*** LOCAL VARIABLE, MOVE TO .h ***/
@@ -24,8 +25,17 @@ volatile const UINT *ptrDistR = &distanceIrRight;				//!< \Same
 static flagReceive flagRx;		//<! \Maybe structure is useless to see !!! WARNING !!
 static compteur cpt;			//<! \Struct use for counters : sensor ir, therm, timeout ...
 static BOOL flagSensorValueChanged;	//<! \Flag is set when data are ready
-static SHORT flagTurn;
+//static SHORT flagTurn;
+//static const UINT stateTurnRight = 0, stateTurnLeft = 1, stateIddle = 2;
+static volatile UINT state;
+static INT angleServo;
+static mailbox_t SerialData;
+static volatile INT currentDiffMean;
+static BYTE prevDiffMean;
+static servo servoTrackeur;
 
+static BOOL flagDiffReceive;
+	
 /*** HELP ON POINTER ***/
 /* value of distance UINT : distanceIRrLeft, distanceIrRight
  * ptr to volatile UINT : *ptrDistL, *ptrDistR
@@ -42,6 +52,8 @@ SHORT pos;
 BOOL sendFrameTh(const BYTE *data, BYTE sizeData);
 BOOL sendFrameIr(BYTE id, UINT dataIr);
 BOOL sendFrameServo(BYTE id, BYTE position);
+servo servo_init();
+void servoCommand(servo Servo, INT error);
 
 
 /*** Prototype function main ***/
@@ -108,12 +120,12 @@ int main(void)
 	// [+]Create tasks.
 	/*** WARNING !!  Priority and Buffer NEED TO BE VERIFY ***/
 	create_task(taskSensor, 0, 0, 150U, 100U, 0);		//<! \Size of stack & Priority
-	create_task(taskSerialTxRx, 0, 0, 150U, 80U, 0);
+	create_task(taskSerialTxRx, 0, 0, 150U, 90U, 0);
+	create_task(taskTracking, 0, 0, 100U, 80U,  0);
 	//create_task(taskSerialCmd, 0, 0, 100U, 60U,  0);
-	create_task(taskTracking, 0, 0, 100U, 70U,  0);
 	
 
-	init_timer(5000U);	//!< \Set TIMER1_COMPA interrupt to tick every 80,000 clock cycles.
+	init_timer(1000U);	//!< \Set TIMER1_COMPA interrupt to tick every 80,000 clock cycles.
 
 	// [+]Start the RTOS - note that this function will never return.
 	task_switcher_start(idle_task, 0, 65U, 80U);
@@ -124,7 +136,7 @@ int main(void)
 	return(0);
 }
 
-
+	
 ISR(TIMER3_OVF_vect)
 {
 	/*
@@ -210,6 +222,10 @@ void delay_ms(unsigned int t)
  */
 void taskSensor(void *p)
 {	
+	
+	//int i = 0;
+	//delay_ms(1000);
+	
 	while(1)	
 	{
 		//printf("\nUart : %d", uart_kbhit());
@@ -237,7 +253,13 @@ void taskSensor(void *p)
 		//LCD_write(lcdBuffer);
 		//LCD_command(LCD_CLR);
 		
-		//printf("\r\nAddPtrDistR : %x  AddPtrDistL : %x *&distR %d *&distL %d", ptrDistR, ptrDistL, *(&distanceIrRight), *(&distanceIRrLeft));
+		//if(i < 500)
+		//{
+		//
+		//printf("\r\n%d %d %d", i, distanceIRrLeft, distanceIrRight);
+		//i++;
+		//}
+		
 		
 		//if((++cpt.cptIr < 255) && (++cpt.cptTherm < 255)); //<! \increment cpt every ms
 		cpt.cptIr++;
@@ -261,6 +283,7 @@ volatile char rxData = ' ';
 void taskSerialTxRx(void *p)
 {
 	//static UINT timeout;
+	//delay_ms(1000);
 	
 	while(1)
 	{	
@@ -312,7 +335,7 @@ void taskSerialTxRx(void *p)
 						uart_putchar(CARAC_ACK);
 					
 						/*** WARNING ! MAYBE INTRODUCE A DELAY HERE ***/
-						_delay_us(DELAY_CMD);
+						//_delay_us(DELAY_CMD);
 						
 						/*** TEST RIR ***/
 						sendFrameIr(IR_L_SENSOR, distanceIRrLeft);
@@ -321,6 +344,7 @@ void taskSerialTxRx(void *p)
 					}
 					else if(rxData == CMD_IRR)
 					{
+
 						#if VERBOSE
 						uart_putchar('R');
 						uart_putchar('\n');
@@ -331,7 +355,7 @@ void taskSerialTxRx(void *p)
 						uart_putchar(CARAC_ACK);
 							
 						/*** WARNING ! MAYBE INTRODUCE A DELAY HERE ***/
-						_delay_us(DELAY_CMD);
+						//_delay_us(DELAY_CMD);
 										
 						/*** TEST RIR ***/
 						sendFrameIr(IR_R_SENSOR, distanceIrRight);
@@ -351,7 +375,7 @@ void taskSerialTxRx(void *p)
 						uart_putchar(CARAC_ACK);
 										
 						/*** WARNING ! MAYBE INTRODUCE A DELAY HERE ***/
-						_delay_us(DELAY_CMD);
+						//_delay_us(DELAY_CMD);
 										
 						/*** TEST THERMAL SENSOR ***/
 						sendFrameTh(thermalDataPtr, NBR_DATA);
@@ -371,9 +395,9 @@ void taskSerialTxRx(void *p)
 						uart_putchar(CARAC_ACK);
 										
 						/*** WARNING ! MAYBE INTRODUCE A DELAY HERE ***/
-						_delay_us(DELAY_CMD);
+						//_delay_us(DELAY_CMD);
 							
-						sendFrameServo(SERVO_MOTOR,pos);
+						sendFrameServo(SERVO_MOTOR, pos);
 										
 						/*** TEST SEND SERVO ***/
 						flagRx.start = 0;
@@ -381,41 +405,59 @@ void taskSerialTxRx(void *p)
 					
 					else if(rxData == CMD_SERVO_TURN_LEFT)
 					{
-						//printf("\r\nCMD SERVO");
-						#if VERBOSE
-						uart_putchar('L');
-						uart_putchar('\n');
-						#endif
+						rxData = ' ';			
+										
+						if((rxData = uart_getchar()))
+						{
+							currentDiffMean = (INT)rxData;
+							
+							//printf("\r\nCMD SERVO");
+							#if VERBOSE
+							uart_putchar('L');
+							uart_putchar('\n');
+							#endif
 
-						/*** Ack ***/
-						uart_putchar(CMD_START);
-						uart_putchar(CARAC_ACK);
-						
-						/*** WARNING ! MAYBE INTRODUCE A DELAY HERE ***/
-						_delay_us(DELAY_CMD);
-						
-						/*** TEST SEND SERVO ***/
-						flagTurn = TURN_LEFT;
-						flagRx.start = 0;
+							/*** Ack ***/
+							uart_putchar(CMD_START);
+							uart_putchar(CARAC_ACK);
+							
+
+							/*** WARNING ! MAYBE INTRODUCE A DELAY HERE ***/
+							//_delay_us(DELAY_CMD);
+													
+							/*** TEST SEND SERVO ***/
+							state = STATE_TURN_LEFT;
+							//flagTurn = TURN_LEFT;
+							flagRx.start = 0;
+						}							
 					}
 
 					else if(rxData == CMD_SERVO_TURN_RIGHT)
 					{
-						//printf("\r\nCMD SERVO");
-						#if VERBOSE
-						uart_putchar('R');
-						uart_putchar('\n');
-						#endif
+						rxData = ' ';
+						
+						if((rxData = uart_getchar()))
+						{
+							currentDiffMean = (INT)rxData;
+							
+							//printf("\r\nCMD SERVO");
+							#if VERBOSE
+							uart_putchar('R');
+							uart_putchar('\n');
+							#endif
 
-						/*** Ack ***/
-						uart_putchar(CMD_START);
-						uart_putchar(CARAC_ACK);
+							/*** Ack ***/
+							uart_putchar(CMD_START);
+							uart_putchar(CARAC_ACK);
+							
 						
-						/*** WARNING ! MAYBE INTRODUCE A DELAY HERE ***/
+							/*** WARNING ! MAYBE INTRODUCE A DELAY HERE ***/
 						
-						/*** TEST SEND SERVO ***/
-						flagTurn = TURN_RIGHT;
-						flagRx.start = 0;
+							/*** TEST SEND SERVO ***/
+							state = STATE_TURN_RIGHT;
+							//flagTurn = TURN_RIGHT;
+							flagRx.start = 0;
+						}
 					}
 					else
 					{
@@ -429,6 +471,8 @@ void taskSerialTxRx(void *p)
 						uart_putchar(CARAC_NACK);
 										
 						/*** WARNING ! MAYBE INTRODUCE A DELAY HERE ***/
+						
+						state = STATE_IDDLE;
 										
 						//printf("\r\nCMD UNKNOWN");
 						flagRx.start = 0;
@@ -447,6 +491,186 @@ void taskSerialTxRx(void *p)
 }
 
 
+
+/*! \fn
+ *  \brief
+ *  \param 
+ *  \param 
+ *  \exception 
+ *  \return
+ */
+/*** Globalvar ***/
+//SHORT pos;
+
+void taskTracking(void *p)
+{
+	servoTrackeur = servo_init();
+	
+	state = STATE_IDDLE;
+
+	servoTrackeur.position = 0;
+	pwm_setPosition(servoTrackeur.position);
+	
+	delay_ms(SERVO_TIME_DEGREE*180);
+	
+	
+	//pos = 90;
+	//int newPos = 0;
+	
+	while(1)
+	{
+		switch (state)
+		{
+		case STATE_TURN_LEFT:
+			
+			//servoTrackeur.position -= (currentDiffMean/10);
+			
+			if(currentDiffMean != prevDiffMean)
+			{
+				prevDiffMean = currentDiffMean;
+			}
+			
+			//servoCommand(servoTrackeur, (prevDiffMean - currentDiffMean));
+			
+			servoTrackeur.position -= currentDiffMean/5;
+			
+			//pwm_setPosition(servoTrackeur.position);
+			
+			//servoTrackeur.position = servoTrackeur.position - 10;
+			
+			if (servoTrackeur.position <= 0)
+			{
+				servoTrackeur.position = 0;
+			}
+			
+			pwm_setPosition(servoTrackeur.position);
+			
+			state = STATE_IDDLE;
+			
+			break;
+			
+		case STATE_TURN_RIGHT:
+		
+			//servoTrackeur.position += (currentDiffMean/10);
+			//servoTrackeur.error = (currentDiffMean - prevDiffMean);
+			//servoCommand(servoTrackeur);
+			//prevDiffMean = currentDiffMean;
+					
+			//servoTrackeur.position = servoTrackeur.position + 10;
+
+			if(currentDiffMean != prevDiffMean)
+			{
+				prevDiffMean = currentDiffMean;
+			}
+			
+			servoTrackeur.position += currentDiffMean/5;
+			
+			//servoCommand(servoTrackeur, (prevDiffMean - currentDiffMean));
+			
+			if (servoTrackeur.position >= 180)
+			{
+				servoTrackeur.position = 180;
+			}
+			
+			pwm_setPosition(servoTrackeur.position);
+			
+			state = STATE_IDDLE;
+			
+			break;
+		
+		case STATE_IDDLE:
+
+			//servoTrackeur.position = servoTrackeur.position; //<! \Useless
+			state = STATE_IDDLE;
+			
+			break;
+			
+		case STATE_SCAN_LEFT:
+		
+			for(servoTrackeur.position = servoTrackeur.posMin; servoTrackeur.position < servoTrackeur.posMax; servoTrackeur.position++)
+			{
+				pwm_setPosition(servoTrackeur.position);
+				//servoTrackeur.position -= 1;
+				delay_ms(SERVO_TIME_DEGREE);
+			}
+			
+			state = STATE_SCAN_RIGHT;
+			
+			
+			//servoTrackeur.error = 180 - pos;
+			//servoCommand(servoTrackeur);
+			
+			//servoTrackeur.position -= 10;
+			//if ((servoTrackeur.position -= 10) < 0)
+			//{
+				//servoTrackeur.position = 0;
+				//printf("\r\nAngle zero");
+				//state = STATE_SCAN_RIGHT;
+			//}
+			//else
+			//{
+				//state = STATE_SCAN_LEFT;
+			//}
+				
+			break;
+		
+		case STATE_SCAN_RIGHT:
+
+			for(servoTrackeur.position = servoTrackeur.posMax; servoTrackeur.position > servoTrackeur.posMin; servoTrackeur.position--)
+			{
+				pwm_setPosition(servoTrackeur.position);
+				//servoTrackeur.position -= 1;
+				delay_ms(SERVO_TIME_DEGREE);
+			}
+			
+			state = STATE_SCAN_LEFT;
+			
+			//servoTrackeur.position += 10;
+			//if ((servoTrackeur.position += 10) > 180)
+			//{
+				//servoTrackeur.position = 180;
+				//printf("\r\nAngle 180");
+				//state = STATE_SCAN_LEFT;
+			//}
+			//else
+			//{
+				//state = STATE_SCAN_RIGHT;
+			//}
+			
+			break;
+		
+		case STATE_OBJECT_DETECT:
+		
+			break;
+			
+		default:
+		
+			//<! \Do nothings here
+			
+			//servoTrackeur.position = 0;
+			
+			break;
+		}
+		
+		//printf("\r\nAngle : %u", servoTrackeur.position);
+		
+		//delay_ms(50);
+		
+		///*** TEST PWM SERVO ***/
+		/*pwm_rotationDroite();
+		_delay_ms(500);
+		pwm_positionCentrale();
+		_delay_ms(500);
+		pwm_rotationGauche();
+		_delay_ms(500);*/
+		
+		//printf("\ntTrack");		
+		delay_ms(DELAY_TTRACKING);
+	}	
+}
+
+
+
 /*! \fn
  *  \brief
  *  \param 
@@ -458,7 +682,7 @@ void taskSerialCmd(void *p)
 {
 	while(1)
 	{
-		//while(rxData = uart_getchar())
+ 		//while(rxData = uart_getchar())
 		//{
 			//if(rxData == 'o')
 			//{
@@ -488,72 +712,6 @@ void taskSerialCmd(void *p)
 		delay_ms(DELAY_TSERIALRX);	
 	}
 }
-
-
-/*! \fn
- *  \brief
- *  \param 
- *  \param 
- *  \exception 
- *  \return
- */
-/*** Globalvar ***/
-//SHORT pos;
-
-void taskTracking(void *p)
-{
-	//pos = 90;
-	//int newPos = 0;
-	
-	while(1)
-	{
-		if (flagTurn == TURN_LEFT)
-		{
-			flagTurn = 0;
-			if(pos > 0 ) pos -= 10;
-			else pos = 0;
-			
-		}
-		else if (flagTurn == TURN_RIGHT)
-		{
-			flagTurn = 0;
-			if(pos < 180 ) pos += 10;
-			else pos = 180;
-		}
-		else
-		{
-			flagTurn = 0;
-		}
-		
-		pwm_setPosition(pos);
-		/*
-		if((rxData = uart_getchar()) == '-')
-		{
-			if(--pos >= -90);
-		}
-		else if (rxData  == '+')
-		{
-			if(++pos <= 90);
-		}
-			
-		pwm_setPosition(pos);	
-		*/
-		//newPos = tracking(pos, ptrDistR, ptrDistL);
-		//pos = newPos;
-		
-		///*** TEST PWM SERVO ***/
-		/*pwm_rotationDroite();
-		_delay_ms(500);
-		pwm_positionCentrale();
-		_delay_ms(500);
-		pwm_rotationGauche();
-		_delay_ms(500);*/
-		
-		//printf("\ntTrack");		
-		delay_ms(DELAY_TTRACKING);
-	}	
-}
-
 
 
 /*! \fn

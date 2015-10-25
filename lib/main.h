@@ -47,15 +47,15 @@
 
 #define DELAY_TSENSOR		1					//!< Delay for task sensor in ms
 #define DELAY_TSERIALTX		5					//!< Delay for task serial tx in ms
-#define DELAY_TSERIALRX		5					//!< Delay for task serial rx in ms
-#define DELAY_TTRACKING		50					//!< Delay for task tracking in ms
+#define DELAY_TSERIALRX		25					//!< Delay for task serial rx in ms
+#define DELAY_TTRACKING		25					//!< Delay for task tracking in ms
 
 
 #define T_ACQ_IR	1	//<! \Acquisition period for IR in ms
 #define	T_ACQ_THERM 10	//<! \Acquisition period for thermal in ms
 #define TIMEOUT_CMD	5	//<! \Timout in ms for received complete CMD : #x 
 
-#define DELAY_CMD	200	//in us
+#define DELAY_CMD	100	//in us
 
 /*** WARNING MACRO USE FOR DEBUGGING, WILL BE DELETE ***/
 #define DEBUG 0

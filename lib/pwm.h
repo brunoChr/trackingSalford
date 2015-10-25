@@ -32,7 +32,7 @@ static const __flash UINT angleToValue[181] =
 		1325, 1330, 1335, 1340, 1345, 1350, 1355, 1360, 1365,
 		1370, 1375, 1380, 1385, 1390, 1395, 1400, 1405, 1410,
 		1415, 1420, 1425, 1430, 1435, 1440, 1445, 1450, 1455,
-		1460, 1465, 1470, 1475, 1480, 1485, 1490, 1495, 1500,
+		1460, 1465, 1470, 1475, 1480, 1485, 1490, 1495, 1450,
 		1505, 1510, 1515, 1520, 1525, 1530, 1535, 1540, 1545,
 		1550, 1555, 1560, 1565, 1570, 1575, 1580, 1585, 1590,
 		1595, 1600, 1605, 1610, 1615, 1620, 1625, 1630, 1635,
@@ -58,8 +58,9 @@ void pwm_init();
 void pwm_rotationGauche(void);
 void pwm_rotationDroite(void);
 void pwm_positionCentrale(void);
-void pwm_setPosition(UINT angle);
+void pwm_setPosition(INT angle);
 //static UINT tableDeCalcul (UINT angle);
 BYTE pwm_getPosition(char typeSortie);
+void pwm_stop();
 
 #endif /* PWM_H_ */

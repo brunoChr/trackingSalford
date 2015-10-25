@@ -18,6 +18,13 @@
 #define OFFSET_ADC_LUT	68U			//!< Offset to applied to Adc result to match the look up table
 #define NUM_READS_ADC	10U
 
+#define STATE_TURN_LEFT		1
+#define STATE_TURN_RIGHT	2
+#define STATE_IDDLE			3
+#define	STATE_SCAN_LEFT		4
+#define STATE_SCAN_RIGHT	5
+#define STATE_OBJECT_DETECT 6
+
 
 
 /* SENSOR SHARP GP2Y0A02YK CARACTERISTIC */

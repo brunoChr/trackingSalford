@@ -20,6 +20,7 @@
 #define DISTANCE_MIN 200
 
 
+
 /*! \fn int info_tracking(int8_t distanceIrRight, int8_t distanceIrLeft)
  *  \brief inform about the direction the pwm need to follow
  *  \param distanceIrRight : distance read by the right infrared sensor

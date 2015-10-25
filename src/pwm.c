@@ -20,8 +20,11 @@ SHORT pos;
  *  \exception 
  *  \return
  */
-static UINT tableDeCalcul(UINT angle)
-{		
+static UINT tableDeCalcul(BYTE angle)
+{
+	if(angle >= 180) angle = 180;
+	if(angle <= 0)	 angle = 0;
+			
 	return angleToValue[angle];
 }
 
@@ -41,6 +44,24 @@ void pwm_activeInterrupt()
 	*/
 	ETIMSK |= (1 << OCIE3A);// Interrupt on compare match A enabled
 	ETIMSK |= (1 << TOIE3); // Interrupt on timer overflow enable
+}
+
+
+/*! \fn
+ *  \brief
+ *  \param 
+ *  \param 
+ *  \exception 
+ *  \return
+ */
+void pwm_stop()
+{
+	/*
+	* Désactivation des interruptions
+	* liées au PWM
+	*/
+	ETIMSK &= ~(1 << OCIE3A);// Interrupt on compare match A enabled
+	ETIMSK &= ~(1 << TOIE3); // Interrupt on timer overflow enable
 }
 
 
@@ -73,8 +94,9 @@ void pwm_init()
 	* Valeur de TOP pour l'overflow = 19 999
 	*/
 
-	//ICR3 = 19999;
-	ICR3 = 24999;
+	//ICR3 = 19999;	//50hz
+	ICR3 = 24999;	//40hz
+	//ICR3 = 29999;	//30hz
 
 	TCCR3B |= (1 << WGM33);
 	TCCR3B |= (1 << WGM32);
@@ -155,7 +177,7 @@ void pwm_positionCentrale(void)
  *  \exception 
  *  \return
  */
-void pwm_setPosition(UINT angle)
+void pwm_setPosition(INT angle)
 {
 	/*
 	Controle de la rotation en PWM
@@ -182,15 +204,14 @@ void pwm_setPosition(UINT angle)
 		angle = 0;
 		pos = 0;
 	}
+	
 	//Gestion des valeurs comprise dans l'intervalle utile
-	else
-	{
-		//OCR3AL = (BYTE)(tableDeCalcul(angle) & 0xFF);
-		//OCR3AH = (BYTE)(tableDeCalcul(angle) >> 8);
-		OCR3A = tableDeCalcul(angle);
-		//printf("\n\rOCR3A : %d", OCR3A);
-		pos = angle;
-	}
+	
+	//OCR3AL = (BYTE)(tableDeCalcul(angle) & 0xFF);
+	//OCR3AH = (BYTE)(tableDeCalcul(angle) >> 8);
+	OCR3A = tableDeCalcul(angle);
+	//printf("\n\rOCR3A : %d", OCR3A);
+	pos = angle;
 
 }
 
