@@ -109,14 +109,22 @@ UINT tracking(int position, const UINT *ptrDistL,const UINT *ptrDistR)
 	return position;				
 }
 
-UINT get_termalTrackingValue(double cog_x, int outputType);
+UINT get_termalTrackingValue(int matrix[], int outputType)
 {
+	/*! \fn UINT get_termalTrackingValue(int matrix[], int outputType);
+	*	\brief give back the position for the servomotor, in degrees or duration of the high-state
+	*	\param matrix : thermal matrix
+	*	\param outputType : the type of position we want (degree or duration)
+	*	\exception
+	*	\return the new position of the servo, in degrees or duration
+	*/
+	
 	double step = 0;
-	const double offset = 1000;
+	const double offset = 1000; // 1ms offset : the servo range from 1ms to 2ms
 	double position = 0;
 	double cog_x = 0;
 	
-	//cog_x = centreDeGravite(matrix);
+	cog_x = centreDeGravite(matrix);
 	
 	if (typeSortie == DEGREES)
 	{

@@ -137,24 +137,29 @@ static int D6T_checkPEC( BYTE *buf, int pPEC )
 	return (crc == buf[pPEC]);
 }
 
-static double gravityCenter(int matrix[][])
+double gravityCenter(int matrix[])
 {
-	/*Calcul du centre de gravité de la matrice
+	/*! \fn double gravityCenter(int matrix[])
+	*	\brief give back the gravity center of the matrix given in argument
+	*	\param matrix : thermal matrix
+	*	\exception
+	*	\return the gravity center of the termal matrix
 	*/
-	int i,j;
-	double cog_x = 0, cog_y = 0, sum_x = 0, sum_y = 0;
+	int i,j = 1;
+	double cog_x = 0, sum_x = 0;
 	double total_pixelValue = 0;
-
-	for(i=0 ; i< NB_LINE ; i++)
-		for(j=0 ; j< NB_ROW ; j++)
-		{
-			sum_x += matrix[i][j] * (i+1);
-			//sum_y += matrix[i][j] * j;
-			total_pixelValue += matrix[i][j];
-		}
+	
+	for(i=0 ; i< THERMAL_TP_SIZE ; i++)
+	{
+			sum_x += matrix[i] * j;
+			j++;
+			if ((i%3) == 0 && i>0)
+				j = 1;
+	
+			total_pixelValue += matrix[i];
+	}
 	
 	cog_x = sum_x/total_pixelValue;
-	//cog_y = sum_y/total;
 
 	return cog_x;
 }
