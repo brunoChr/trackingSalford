@@ -289,3 +289,4 @@ FakesAssemblies/
 _Pvt_Extensions
 
 src/main.c.orig
+*.orig
