@@ -9,6 +9,7 @@
 #include "../lib/types.h"
 #include "../lib/tracking.h"
 #include "../lib/infrared.h"
+#include "../lib/thermal.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -106,4 +107,32 @@ UINT tracking(int position, const UINT *ptrDistL,const UINT *ptrDistR)
 			break;
 	}
 	return position;				
+}
+
+UINT get_termalTrackingValue(double cog_x, int outputType);
+{
+	double step = 0;
+	const double offset = 1000;
+	double position = 0;
+	double cog_x = 0;
+	
+	//cog_x = centreDeGravite(matrix);
+	
+	if (typeSortie == DEGREES)
+	{
+		step = 180/400;
+		position = (cog_x*100) * step;
+	}
+	else if (outputType == MILLISECONDS)
+	{
+		step = 0.5;
+		position = (cog_x*1000) * step + offset;
+	}
+	else
+	{
+		step = 0.5;
+		position = (cog_x*1000) * step + offset;
+	}
+	
+	return (int)position;
 }
