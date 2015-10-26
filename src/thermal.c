@@ -155,7 +155,15 @@ static int D6T_checkPEC( BYTE *buf, int pPEC )
 	return (crc == buf[pPEC]);
 }
 
-double gravityCenter(int matrix[])
+static int i,j = 1;
+static UINT sum_x = 0;
+static float cog_x = 0;
+static UINT total_pixelValue = 0;
+
+static const UINT matrice[16] = {224, 5, 230, 0, 0, 226, 10, 20, 100, 230, 238, 248, 227, 225, 228, 241};
+	
+	
+double gravityCenter(int *matrix)
 {
 	/*! \fn double gravityCenter(int matrix[])
 	*	\brief give back the gravity center of the matrix given in argument
@@ -163,21 +171,34 @@ double gravityCenter(int matrix[])
 	*	\exception
 	*	\return the gravity center of the termal matrix
 	*/
-	int i,j = 1;
-	double cog_x = 0, sum_x = 0;
-	double total_pixelValue = 0;
 	
-	for(i=0 ; i< THERMAL_TP_SIZE ; i++)
+
+	total_pixelValue = 0;
+	sum_x = 0;
+	cog_x = 0;
+	
+	for(i = 0 ; i< THERMAL_TP_SIZE ; i++)
 	{
-			sum_x += matrix[i] * j;
-			j++;
-			if ((i%3) == 0 && i>0)
-				j = 1;
-	
-			total_pixelValue += matrix[i];
+		//printf("%d ", matrice[i]);
+		
+		if (((i%3) == 0) && (i>0))	j = 1;
+		
+		sum_x += matrice[i] * j;
+		j++;
+		
+		total_pixelValue += matrice[i];
+		printf("\r\nCOg : %f", cog_x);
 	}
 	
+	//printf("\r\nSum : %f", sum_x);
+	//printf("\r\nTot : %f", total_pixelValue);
+	
+	if(total_pixelValue == 0) total_pixelValue = 1;
+	
+	printf("\r\ntotal: %f, sum = %f", total_pixelValue, sum_x);		
 	cog_x = sum_x/total_pixelValue;
+	
+	printf("\r\nCOg : %f", cog_x);
 
 	return cog_x;
 }

@@ -128,8 +128,8 @@ int main(void)
 	// [+]Create tasks.
 	/*** WARNING !!  Priority and Buffer NEED TO BE VERIFY ***/
 	create_task(taskSensor, 0, 0, 150U, 100U, 0);		//<! \Size of stack & Priority
-	create_task(taskSerialTxRx, 0, 0, 150U, 90U, 0);
-	create_task(taskTracking, 0, 0, 100U, 80U,  0);
+	//create_task(taskSerialTxRx, 0, 0, 150U, 90U, 0);
+	//create_task(taskTracking, 0, 0, 100U, 80U,  0);
 	//create_task(taskProcessing, 0, 0, 150U, 80U,  0);
 	
 
@@ -258,6 +258,7 @@ void taskSensor(void *p)
 		if (cpt.cptTherm == T_ACQ_THERM)
 		{
 			thermalDataPtr = mesure_thermal(thermal_Buff, THERMAL_BUFF_SIZE - 1) ;			//<! \Mesure of the thermal
+			printf("\r\n%d", get_termalTrackingValue(thermalDataPtr, DEGREES));
 			cpt.cptTherm = 0;																//<! \Reset cpt
 			//flagSensorValueChanged = 1;
 		}

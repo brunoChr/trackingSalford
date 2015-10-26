@@ -18,98 +18,16 @@
 #define NEED_ROTATION_DROITE 2
 #define CIBLE_TRACKEE 3
 #define DISTANCE_MAX 1500
-#define DISTANCE_MIN 200
+#define DISTANCE_MIN		200
+#define PAS_DEGREE			(180/400)
+#define PAS_TIME_SERVO		0.5f
 
-
-
-/*! \fn int info_tracking(int8_t distanceIrRight, int8_t distanceIrLeft)
- *  \brief inform about the direction the pwm need to follow
- *  \param distanceIrRight : distance read by the right infrared sensor
- *  \param distanceIrLeft : distance read by the left infrared sensor
- *  \exception target focused ; target out of range
- *  \return direction
- */
-
-static int info_tracking(UINT distanceIrRight, UINT distanceIrLeft)
-{
-	printf("\r\nDistR : %d  DistL : %d", distanceIrRight, distanceIrLeft);
+static 	double position = 0;
+static  double cog_x = 0;
+const double offset = 1000; // 1ms offset : the servo range from 1ms to 2ms
 	
-	//!< if the value from both right and left sensors are out of the range (distance > 150 cm)
-	if ((distanceIrRight >= DISTANCE_MAX) && (distanceIrLeft >= DISTANCE_MAX))
-	{
-		return OUT_OF_RANGE;		
-	}
-	//!< if the value from both right and left sensors are out of the range (distance < 20 cm)
-	else if((distanceIrRight < DISTANCE_MIN) || (distanceIrLeft < DISTANCE_MIN))
-	{
-		return OUT_OF_RANGE;
-	}
-	//!< if someone is in front of the left sensor but not in front of the right one, the indication must be to turn on left
-	else if(((distanceIrRight >= DISTANCE_MAX) || (distanceIrRight < DISTANCE_MIN)) &&
-	 ((distanceIrLeft < DISTANCE_MAX) && (distanceIrLeft >= DISTANCE_MIN)))
-	{
-		return NEED_ROTATION_GAUCHE;
-	}
-	//!< if someone is in front of the right sensor but not in front of the left one, the indication must be to turn on right
-	else if(((distanceIrLeft>= DISTANCE_MAX) || (distanceIrLeft < DISTANCE_MIN)) &&
-	((distanceIrRight < DISTANCE_MAX) && (distanceIrRight >= DISTANCE_MIN)))
-	{
-		return NEED_ROTATION_DROITE;
-	}
-	//!< if someone is in front of the both sensors, the target is well-focused
-	else if(((distanceIrRight < DISTANCE_MAX) && (distanceIrRight >= DISTANCE_MIN))
-	 && ((distanceIrLeft < DISTANCE_MAX) && (distanceIrLeft >= DISTANCE_MIN)))
-	{
-		return CIBLE_TRACKEE;
-	}
 	
-	return 0;
-}
-
-
-UINT tracking(int position, const UINT *ptrDistL,const UINT *ptrDistR)
-{
-	/*! \fn unsigned int tracking(UINT distanceIrRight, UINT distanceIrLeft, int position)
-	*	\brief follow the target according to the information given by the function "info_tracking"
-	*	\param distanceIrRight : distance read by the right infrared sensor
-	*	\param distanceIrLeft : distance read by the left infrared sensor
-	*	\param position : actual position of the servomotor, in degrees
-	*	\exception
-	*	\return the new position of the servo, in degrees
-	*/
-	
-	switch(info_tracking(*ptrDistR, *ptrDistL))
-	{
-		printf("\r\nDistR : %d  DistL : %d", (*ptrDistR), (*ptrDistL));
-		case OUT_OF_RANGE:
-			pwm_positionCentrale();
-			return 90;
-			break;
-		
-		case NEED_ROTATION_DROITE:
-			position++;
-			pwm_setPosition(position);
-			return position;
-			break;
-			
-		case NEED_ROTATION_GAUCHE:
-			position--;
-			pwm_setPosition(position);
-			return position;
-			break;
-		
-		case CIBLE_TRACKEE:
-			pwm_setPosition(position);
-			return position;
-			
-		default:
-			return position;
-			break;
-	}
-	return position;				
-}
-
-UINT get_termalTrackingValue(int matrix[], int outputType)
+UINT get_termalTrackingValue(int *matrix, int outputType)
 {
 	/*! \fn UINT get_termalTrackingValue(int matrix[], int outputType);
 	*	\brief give back the position for the servomotor, in degrees or duration of the high-state
@@ -119,27 +37,19 @@ UINT get_termalTrackingValue(int matrix[], int outputType)
 	*	\return the new position of the servo, in degrees or duration
 	*/
 	
-	double step = 0;
-	const double offset = 1000; // 1ms offset : the servo range from 1ms to 2ms
-	double position = 0;
-	double cog_x = 0;
+	cog_x = gravityCenter(matrix);
 	
-	cog_x = centreDeGravite(matrix);
-	
-	if (typeSortie == DEGREES)
+	if (outputType == DEGREES)
 	{
-		step = 180/400;
-		position = (cog_x*100) * step;
+		position = (cog_x*100) * PAS_DEGREE;
 	}
 	else if (outputType == MILLISECONDS)
 	{
-		step = 0.5;
-		position = (cog_x*1000) * step + offset;
+		position = (cog_x*1000) * PAS_TIME_SERVO + offset;
 	}
 	else
 	{
-		step = 0.5;
-		position = (cog_x*1000) * step + offset;
+		position = (cog_x*1000) * PAS_TIME_SERVO + offset;
 	}
 	
 	return (int)position;

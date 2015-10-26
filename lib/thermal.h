@@ -30,7 +30,7 @@
 //extern BOOL thermal_read(BYTE address, BYTE *data);
 //extern int D6T_checkPEC( BYTE *buf, int pPEC );
 INT * mesure_thermal(BYTE *thermal_Buff, BYTE size);
-double gravityCenter(int matrix[]);
+double gravityCenter(int *matrix);
 
 
 
