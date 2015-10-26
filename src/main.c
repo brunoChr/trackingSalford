@@ -32,10 +32,11 @@ static INT angleServo;
 static mailbox_t SerialData;
 static volatile INT currentDiffMean;
 static BYTE prevDiffMean;
-static servo servoTrackeur;
+static servo servoT;
 
 static BOOL flagDiffReceive;
-	
+static int dur = 100; //duration is 100 loops
+				
 /*** HELP ON POINTER ***/
 /* value of distance UINT : distanceIRrLeft, distanceIrRight
  * ptr to volatile UINT : *ptrDistL, *ptrDistR
@@ -504,12 +505,15 @@ void taskSerialTxRx(void *p)
 
 void taskTracking(void *p)
 {
-	servoTrackeur = servo_init();
+	servoT = servo_init();
 	
 	state = STATE_IDDLE;
 
-	servoTrackeur.position = 0;
-	pwm_setPosition(servoTrackeur.position);
+	servoT.position = servoT.posCenter;
+	pwm_setPosition(servoT.position);
+	
+	servoT.dest = 2000;
+	servoT.dest_sh = 1000;
 	
 	delay_ms(SERVO_TIME_DEGREE*180);
 	
@@ -532,18 +536,18 @@ void taskTracking(void *p)
 			
 			//servoCommand(servoTrackeur, (prevDiffMean - currentDiffMean));
 			
-			servoTrackeur.position -= currentDiffMean/5;
+			servoT.position -= currentDiffMean/5;
 			
 			//pwm_setPosition(servoTrackeur.position);
 			
 			//servoTrackeur.position = servoTrackeur.position - 10;
 			
-			if (servoTrackeur.position <= 0)
+			if (servoT.position <= 0)
 			{
-				servoTrackeur.position = 0;
+				servoT.position = 0;
 			}
 			
-			pwm_setPosition(servoTrackeur.position);
+			pwm_setPosition(servoT.position);
 			
 			state = STATE_IDDLE;
 			
@@ -563,16 +567,16 @@ void taskTracking(void *p)
 				prevDiffMean = currentDiffMean;
 			}
 			
-			servoTrackeur.position += currentDiffMean/5;
+			servoT.position += currentDiffMean/5;
 			
 			//servoCommand(servoTrackeur, (prevDiffMean - currentDiffMean));
 			
-			if (servoTrackeur.position >= 180)
+			if (servoT.position >= 180)
 			{
-				servoTrackeur.position = 180;
+				servoT.position = 180;
 			}
 			
-			pwm_setPosition(servoTrackeur.position);
+			pwm_setPosition(servoT.position);
 			
 			state = STATE_IDDLE;
 			
@@ -587,15 +591,14 @@ void taskTracking(void *p)
 			
 		case STATE_SCAN_LEFT:
 		
-			for(servoTrackeur.position = servoTrackeur.posMin; servoTrackeur.position < servoTrackeur.posMax; servoTrackeur.position++)
+			for(servoT.position = servoT.posMin; servoT.position < servoT.posMax; servoT.position++)
 			{
-				pwm_setPosition(servoTrackeur.position);
+				pwm_setPosition(servoT.position);
 				//servoTrackeur.position -= 1;
 				delay_ms(SERVO_TIME_DEGREE);
 			}
 			
 			state = STATE_SCAN_RIGHT;
-			
 			
 			//servoTrackeur.error = 180 - pos;
 			//servoCommand(servoTrackeur);
@@ -616,9 +619,9 @@ void taskTracking(void *p)
 		
 		case STATE_SCAN_RIGHT:
 
-			for(servoTrackeur.position = servoTrackeur.posMax; servoTrackeur.position > servoTrackeur.posMin; servoTrackeur.position--)
+			for(servoT.position = servoT.posMax; servoT.position > servoT.posMin; servoT.position--)
 			{
-				pwm_setPosition(servoTrackeur.position);
+				pwm_setPosition(servoT.position);
 				//servoTrackeur.position -= 1;
 				delay_ms(SERVO_TIME_DEGREE);
 			}
@@ -641,6 +644,17 @@ void taskTracking(void *p)
 		
 		case STATE_OBJECT_DETECT:
 		
+		
+			servoT.dest_sh = (servoT.dest_sh*MINUS_FILTER_SERVO) + servoT.dest*FILTER_SERVO;	
+			
+			 //for (int pos=0; pos<500; pos++){
+				 ////move servo from 0 and 140 degrees forward
+				 //OCR3A = (int)servoEaseOutQuad(pos, 1000, 2000, dur);
+				 //delay_ms(50); //wait for the servo to move
+			 //}
+		
+			if(servoT.dest_sh > 179) state = STATE_IDDLE;
+			
 			break;
 			
 		default:
@@ -652,6 +666,8 @@ void taskTracking(void *p)
 			break;
 		}
 		
+		
+		//pwm_setPosition(servoT.dest_sh);
 		//printf("\r\nAngle : %u", servoTrackeur.position);
 		
 		//delay_ms(50);

@@ -16,13 +16,11 @@
 
 typedef struct { 
 	
-	double q; // Process noise covariance. double r; // Measurement noise covariance.
-	double r; // Measurement noise covariance.
-	double x; // Estimate value.
-
+	double q; // Process noise covariance.
+	double r; // sensor noise, Measurement noise covariance.
+	double x; // filtered value, Estimate value.
 	double p; // Estimate error covariance.
-
-	double k; // Kalmangain.
+	double k; // Kalman gain.
 
 } kalman_state;
 

@@ -49,6 +49,22 @@ void servoCommand(servo Servo, INT error)
 }
 
 
+// quadratic easing out - decelerating to zero velocity
+// t: current time, b: beginning value, c: change in value, d: duration
+float servoEaseOutQuad (float t, float b, float c, float d)
+{
+	return -c *(t/=d)*(t-2) + b;
+}
+
+/* Example of calling this function 
+ 
+ int dur = 100; //duration is 100 loops
+ for (int pos=0; pos<dur; pos++){
+	 //move servo from 0 and 140 degrees forward
+	 myServo.write(Easing::easeInOutCubic(pos, 0, 140, dur));
+	 delay(15); //wait for the servo to move
+ }
+*/
 
 //void smoothmove(int cposition, int oldposition) {
 	//int moveAngle;
