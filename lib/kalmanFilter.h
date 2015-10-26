@@ -25,6 +25,8 @@ typedef struct {
 } kalman_state;
 
 
-
+/*** Global function ***/
+extern kalman_state kalman_init(double q, double r, double p, double x);
+extern void kalman_update(kalman_state *state, double measurement);
 
 #endif /* KALMANFILTER_H_ */
