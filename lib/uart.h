@@ -15,6 +15,6 @@ CHAR uart_getchar(void);
 void uart_putchar(CHAR data);
 BOOL uart_kbhit(void);
 INT  uart_printf(CHAR var, FILE *stream);
-void USART_Flush( void );
+void uart_flush( void );
 
 #endif

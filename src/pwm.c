@@ -169,6 +169,17 @@ void pwm_positionCentrale(void)
 	pos = 90;
 }
 
+/*! \fn
+ *  \brief
+ *  \param 
+ *  \param 
+ *  \exception 
+ *  \return
+ */
+void pwm_setOcr(INT time)
+{
+	OCR3A = time;
+}
 
 /*! \fn
  *  \brief

@@ -62,5 +62,6 @@ void pwm_setPosition(INT angle);
 //static UINT tableDeCalcul (UINT angle);
 BYTE pwm_getPosition(char typeSortie);
 void pwm_stop();
+void pwm_setOcr(INT time);
 
 #endif /* PWM_H_ */

@@ -64,7 +64,7 @@ INT uart_printf(CHAR var, FILE *stream)
 	return(FALSE);
 }
 
-void USART_Flush( void )
+void uart_flush( void )
 {
 	unsigned char dummy;
 	while ( UCSR0A & (1<<RXC0) ) dummy = UDR0;
