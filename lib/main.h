@@ -46,12 +46,12 @@
 #define DEBUG 0								//!< \Debug macro
 
 #define DELAY_TSENSOR		1					//!< Delay for task sensor in ms
-#define DELAY_TSERIALTX		5					//!< Delay for task serial tx in ms
-#define DELAY_TSERIALRX		25					//!< Delay for task serial rx in ms
+#define DELAY_TSERIALTX		40					//!< Delay for task serial tx in ms
+#define DELAY_TPROCESS		40					//!< Delay for task serial rx in ms
 #define DELAY_TTRACKING		25					//!< Delay for task tracking in ms
 
 
-#define T_ACQ_IR	1	//<! \Acquisition period for IR in ms
+#define T_ACQ_IR	40	//<! \Acquisition period for IR in ms
 #define	T_ACQ_THERM 10	//<! \Acquisition period for thermal in ms
 #define TIMEOUT_CMD	5	//<! \Timout in ms for received complete CMD : #x 
 
