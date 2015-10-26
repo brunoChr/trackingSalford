@@ -25,6 +25,9 @@
 */
 
 
+#define SERVO_TIME_LOW	1000  //<! \in us
+#define SERVO_TIME_HIGH 2000  
+
 #define FRAME_RATE          25    // milliseconds per frame
 #define SERVO_SPEED			200   // this the time in ms to move 60 degrees
 #define MAX_STEP_PER_FRAME  (60 / (SERVO_SPEED/ FRAME_RATE))	// max degrees servo can move in one frame
@@ -32,7 +35,7 @@
 
 
 /*** EASING ***/
-#define  FILTER_SERVO			0.05f
+#define  FILTER_SERVO			0.01f
 #define  MINUS_FILTER_SERVO		(1 - FILTER_SERVO)
 
 /*!
@@ -42,6 +45,9 @@
  */ 
 typedef struct
 {
+	INT timeMin;
+	INT timeMax;
+	INT timeMoy;
 	INT position;
 	INT prevPosition;
 	INT posMax;
