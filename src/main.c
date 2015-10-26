@@ -17,7 +17,7 @@
 
 /*** LOCAL VARIABLE, MOVE TO .h ***/
 static BYTE thermal_Buff[THERMAL_BUFF_SIZE];					//!< \Buffer of temp, static because only use in main.c
-static BYTE *thermalDataPtr;									//!< \Pointer to the buffer temp
+static INT *thermalDataPtr;									//!< \Pointer to the buffer temp
 static semaphore_t tick = {0};									//!< \A semaphore is incremented at every tick.
 static volatile UINT  distanceIrLeft, distanceIrRight;			//!< \Distance from the sensor : static because only use in main, volatile because modified by different process
 volatile const UINT *ptrDistL = &distanceIrLeft;				//!< \Pointer to distance adress because volatile UINT *  means "pointer to volatile UINT", const to be non modifiable	
@@ -55,7 +55,7 @@ SHORT pos;
 
 
 /*** GLOBAL FUNCTION ***/
-BOOL sendFrameTh(const BYTE *data, BYTE sizeData);
+BOOL sendFrameTh(const INT *data, BYTE sizeData);
 BOOL sendFrameIr(BYTE id, UINT dataIr);
 BOOL sendFrameServo(BYTE id, BYTE position);
 servo servo_init();
@@ -258,16 +258,16 @@ void taskSensor(void *p)
 		if (cpt.cptTherm == T_ACQ_THERM)
 		{
 			thermalDataPtr = mesure_thermal(thermal_Buff, THERMAL_BUFF_SIZE - 1) ;			//<! \Mesure of the thermal
-			cpt.cptTherm = 0;															//<! \Reset cpt
+			cpt.cptTherm = 0;																//<! \Reset cpt
 			//flagSensorValueChanged = 1;
 		}
+		
 		
 		/*** TEST LCD ***/
 		//my_itoa(distanceIrRight, lcdBuffer, 10);
 		//LCD_write(lcdBuffer);
 		//LCD_command(LCD_CLR);
 				
-		
 		//if((++cpt.cptIr < 255) && (++cpt.cptTherm < 255)); //<! \increment cpt every ms
 		cpt.cptIr++;
 		cpt.cptTherm++;
@@ -292,27 +292,28 @@ void taskSerialTxRx(void *p)
 	//static UINT timeout;
 	//delay_ms(1000);
 	
-	static int i = 0;
+	//static int i = 0;
 
 	while(1)
 	{	
-
-		if(i < 100)
-		{
-			if(flagSensorValueChanged)
-			{
-				printf("\r\n%d;%d;%d;%d;%d;", i, distanceIrLeft, (INT)kalmanIrL.x, distanceIrRight, (INT)kalmanIrR.x);
-				i++;
-				flagSensorValueChanged = 0;
-			}
-		}
-		
-		if(uart_kbhit())
-		{
-			uart_flush();
-			i = 0;
-		}
+		/*** TEST IR & KALMAN ***/
+		//if(i < 100)
+		//{
+			//if(flagSensorValueChanged)
+			//{
+				//printf("\r\n%d;%d;%d;%d;%d;", i, distanceIrLeft, (INT)kalmanIrL.x, distanceIrRight, (INT)kalmanIrR.x);
+				//i++;
+				//flagSensorValueChanged = 0;
+			//}
+		//}
+		//
+		//if(uart_kbhit())
+		//{
+			//uart_flush();
+			//i = 0;
+		//}
 		//printf("\n\rKnbit : %d", uart_kbhit());
+		
 		if(uart_kbhit())
 		{		
 			if((rxData = uart_getchar()))
@@ -525,22 +526,21 @@ void taskSerialTxRx(void *p)
  *  \exception 
  *  \return
  */
-/*** Globalvar ***/
-//SHORT pos;
 
 void taskTracking(void *p)
 {
 	servoT = servo_init();
 	
-	state = STATE_IDDLE;
+	state = STATE_SCAN_LEFT;
 
-	servoT.position = servoT.posMin;
-	pwm_setOcr(servoT.timeMin);
+	servoT.position = servoT.posCenter;
+	
+	pwm_setPosition(servoT.position);
 	
 	//pwm_setPosition(servoT.position);
 	
 	servoT.dest = servoT.timeMax;
-	servoT.dest_sh = servoT.posMin;
+	servoT.dest_sh = 0;
 	
 	delay_ms(SERVO_TIME_DEGREE*180);
 	
@@ -625,6 +625,17 @@ void taskTracking(void *p)
 				delay_ms(SERVO_TIME_DEGREE);
 			}
 			
+			//servoT.dest = servoT.timeMin;
+			//servoT.dest_sh = 0;
+			//
+			//while(servoT.dest_sh > servoT.timeMin)
+			//{
+				//servoT.dest_sh = (servoT.dest_sh*MINUS_FILTER_SERVO) + servoT.dest*FILTER_SERVO;
+				//pwm_setOcr(servoT.dest_sh);
+				////pwm_setPosition(servoT.dest_sh);
+				//delay_ms(1);
+			//}
+			//
 			state = STATE_SCAN_RIGHT;
 			
 			//servoTrackeur.error = 180 - pos;
@@ -653,6 +664,17 @@ void taskTracking(void *p)
 				delay_ms(SERVO_TIME_DEGREE);
 			}
 			
+			//servoT.dest = servoT.timeMax;
+			//servoT.dest_sh = 0;
+						//
+			//while(servoT.dest_sh < servoT.timeMax)
+			//{
+				//servoT.dest_sh = (servoT.dest_sh*MINUS_FILTER_SERVO) + servoT.dest*FILTER_SERVO;
+				//pwm_setOcr(servoT.dest_sh);
+				////pwm_setPosition(servoT.dest_sh);
+				//delay_ms(1);
+			//}
+						
 			state = STATE_SCAN_LEFT;
 			
 			//servoTrackeur.position += 10;

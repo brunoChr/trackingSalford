@@ -14,7 +14,7 @@ servo servo_init()
 	
 	result.timeMin = SERVO_TIME_LOW;
 	result.timeMax = SERVO_TIME_HIGH;
-	result.timeMoy = ((result.timeMax - result.timeMin)/2);
+	result.timeMoy = ((result.timeMax + result.timeMin)/2);
 	result.posMax = 180;
 	result.posMin = 0;
 	result.posCenter = ((result.posMax - result.posMin) / 2);
