@@ -2,17 +2,23 @@
 #include "../lib/uart.h"
 
 /*** LOCAL FILE VARAIBLE ***/
-BYTE tPTAT;
-BYTE tP[THERMAL_TP_SIZE];
-BYTE tPEC;
-int check;
-unsigned char crc;
-int i;
-int indexTherm;
-unsigned char temp;
+static INT tPTAT;
+static BYTE tP[THERMAL_TP_SIZE];
+static INT tPEC;
+static int check;
+static unsigned char crc;
+static int i;
+static int indexTherm;
+static unsigned char temp;
 
-BOOL thermal_read(BYTE address, BYTE *data);
-int D6T_checkPEC( BYTE *buf, int pPEC );
+static BOOL thermal_read(BYTE address, BYTE *data);
+static int D6T_checkPEC( BYTE *buf, int pPEC );
+
+
+/*** TO DO !! 
+ *   Resolve error for thermal measurement -> put the temp mesured in INT and not in a BYTE  		
+ *   Possible overflow of variable -> false mesurement, when object temp > 25.5°c 
+*/
 
 
 /*! \fn
@@ -22,7 +28,7 @@ int D6T_checkPEC( BYTE *buf, int pPEC );
  *  \exception 
  *  \return
  */
-BOOL thermal_read(BYTE address, BYTE *data)
+static BOOL thermal_read(BYTE address, BYTE *data)
 {
 	if(twi_start(address, WRITE))
 	{
@@ -40,6 +46,60 @@ BOOL thermal_read(BYTE address, BYTE *data)
 	return(0);
 }
 
+
+
+/*! \fn BYTE * mesure_thermal(const BYTE *thermal_Buff, BYTE size)
+ *  \brief
+ *  \param 
+ *  \param 
+ *  \exception 
+ *  \return a character pointer.
+ */
+BYTE* mesure_thermal(BYTE *thermal_Buff, BYTE size)
+{	
+	thermal_read(THERMAL_ADD, thermal_Buff);
+	
+	if(!D6T_checkPEC(thermal_Buff, size))
+	{
+		return NULL; // e r r o r
+	}
+		
+	tPTAT = (BYTE)(thermal_Buff[1] << 8)|(thermal_Buff[0]);
+
+	tP[0] = (BYTE)(thermal_Buff[3] << 8)|(thermal_Buff[2]);
+	tP[1] = (BYTE)(thermal_Buff[5] << 8)|(thermal_Buff[4]);
+	tP[2] = (BYTE)(thermal_Buff[7] << 8)|(thermal_Buff[6]);
+	tP[3] = (BYTE)(thermal_Buff[9] << 8)|(thermal_Buff[8]);
+	tP[4] = (BYTE)(thermal_Buff[11] << 8)|(thermal_Buff[10]);
+	tP[5] = (BYTE)(thermal_Buff[13] << 8)|(thermal_Buff[12]);
+	tP[6] = (BYTE)(thermal_Buff[15] << 8)|(thermal_Buff[14]);
+	tP[7] = (BYTE)(thermal_Buff[17] << 8)|(thermal_Buff[16]);
+	tP[8] = (BYTE)(thermal_Buff[19] << 8)|(thermal_Buff[18]);
+	tP[9] = (BYTE)(thermal_Buff[21] << 8)|(thermal_Buff[20]);
+	tP[10] = (BYTE)(thermal_Buff[23] << 8)|(thermal_Buff[22]);
+	tP[11] = (BYTE)(thermal_Buff[25] << 8)|(thermal_Buff[24]);
+	tP[12] = (BYTE)(thermal_Buff[27] << 8)|(thermal_Buff[26]);
+	tP[13] = (BYTE)(thermal_Buff[29] << 8)|(thermal_Buff[28]);
+	tP[14] = (BYTE)(thermal_Buff[31] << 8)|(thermal_Buff[30]);
+	tP[15] = (BYTE)(thermal_Buff[33] << 8)|(thermal_Buff[32]);
+	
+	tPEC = thermal_Buff[34];
+	
+	//printf("TP : %d", tP);
+	//uart_putchar(tPTAT);
+	
+	//for(int i=0;i<16;i++)
+	//{
+		//printf("%d ", tP[i]);
+	//}
+	//
+	//printf("\r\n");
+	
+	
+	//uart_putchar(tPEC);
+	
+	return tP;
+}
 
 /*! \fn
  *  \brief
@@ -66,7 +126,7 @@ static unsigned char calc_crc( unsigned char data )
  *  \exception 
  *  \return
  */
-int D6T_checkPEC( BYTE *buf, int pPEC )
+static int D6T_checkPEC( BYTE *buf, int pPEC )
 {
 	crc = calc_crc( 0x14 );
 	crc = calc_crc( 0x4C ^ crc );
@@ -77,56 +137,3 @@ int D6T_checkPEC( BYTE *buf, int pPEC )
 	return (crc == buf[pPEC]);
 }
 
-
-/*! \fn BYTE * mesure_thermal(const BYTE *thermal_Buff, BYTE size)
- *  \brief
- *  \param 
- *  \param 
- *  \exception 
- *  \return a character pointer.
- */
-BYTE * mesure_thermal(BYTE *thermal_Buff, BYTE size)
-{	
-	thermal_read(THERMAL_ADD, thermal_Buff);
-	
-	if(!D6T_checkPEC(thermal_Buff, size))
-	{
-		return NULL; // e r r o r
-	}
-		
-	tPTAT=256*thermal_Buff[1]+thermal_Buff[0];
-	
-	tP[0]=256*thermal_Buff[3]+thermal_Buff[2];
-	tP[1]=256*thermal_Buff[5]+thermal_Buff[4];
-	tP[2]=256*thermal_Buff[7]+thermal_Buff[6];
-	tP[3]=256*thermal_Buff[9]+thermal_Buff[8];
-	tP[4]=256*thermal_Buff[11]+thermal_Buff[10];
-	tP[5]=256*thermal_Buff[13]+thermal_Buff[12];
-	tP[6]=256*thermal_Buff[15]+thermal_Buff[14];
-	tP[7]=256*thermal_Buff[17]+thermal_Buff[16];
-	tP[8]=256*thermal_Buff[19]+thermal_Buff[18];
-	tP[9]=256*thermal_Buff[21]+thermal_Buff[20];
-	tP[10]=256*thermal_Buff[23]+thermal_Buff[22];
-	tP[11]=256*thermal_Buff[25]+thermal_Buff[24];
-	tP[12]=256*thermal_Buff[27]+thermal_Buff[26];
-	tP[13]=256*thermal_Buff[29]+thermal_Buff[28];
-	tP[14]=256*thermal_Buff[31]+thermal_Buff[30];
-	tP[15]=256*thermal_Buff[33]+thermal_Buff[32];
-	
-	tPEC=thermal_Buff[34];
-	
-	//printf("TP : %d", tP);
-	//uart_putchar(tPTAT);
-	
-	//for(int i=0;i<16;i++)
-	//{
-		//printf("%d ", tP[i]);
-	//}
-	//
-	//printf("\r\n");
-	
-	
-	//uart_putchar(tPEC);
-	
-	return tP;
-}
