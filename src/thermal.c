@@ -3,7 +3,7 @@
 
 /*** LOCAL FILE VARAIBLE ***/
 static INT tPTAT;
-static BYTE tP[THERMAL_TP_SIZE];
+static INT tP[THERMAL_TP_SIZE];
 static INT tPEC;
 static int check;
 static unsigned char crc;
@@ -55,8 +55,9 @@ static BOOL thermal_read(BYTE address, BYTE *data)
  *  \exception 
  *  \return a character pointer.
  */
-BYTE* mesure_thermal(BYTE *thermal_Buff, BYTE size)
+INT* mesure_thermal(BYTE *thermal_Buff, BYTE size)
 {	
+	
 	thermal_read(THERMAL_ADD, thermal_Buff);
 	
 	if(!D6T_checkPEC(thermal_Buff, size))
@@ -64,25 +65,42 @@ BYTE* mesure_thermal(BYTE *thermal_Buff, BYTE size)
 		return NULL; // e r r o r
 	}
 		
-	tPTAT = (BYTE)(thermal_Buff[1] << 8)|(thermal_Buff[0]);
+	tPTAT = (thermal_Buff[1] << 8)|(thermal_Buff[0]);
 
-	tP[0] = (BYTE)(thermal_Buff[3] << 8)|(thermal_Buff[2]);
-	tP[1] = (BYTE)(thermal_Buff[5] << 8)|(thermal_Buff[4]);
-	tP[2] = (BYTE)(thermal_Buff[7] << 8)|(thermal_Buff[6]);
-	tP[3] = (BYTE)(thermal_Buff[9] << 8)|(thermal_Buff[8]);
-	tP[4] = (BYTE)(thermal_Buff[11] << 8)|(thermal_Buff[10]);
-	tP[5] = (BYTE)(thermal_Buff[13] << 8)|(thermal_Buff[12]);
-	tP[6] = (BYTE)(thermal_Buff[15] << 8)|(thermal_Buff[14]);
-	tP[7] = (BYTE)(thermal_Buff[17] << 8)|(thermal_Buff[16]);
-	tP[8] = (BYTE)(thermal_Buff[19] << 8)|(thermal_Buff[18]);
-	tP[9] = (BYTE)(thermal_Buff[21] << 8)|(thermal_Buff[20]);
-	tP[10] = (BYTE)(thermal_Buff[23] << 8)|(thermal_Buff[22]);
-	tP[11] = (BYTE)(thermal_Buff[25] << 8)|(thermal_Buff[24]);
-	tP[12] = (BYTE)(thermal_Buff[27] << 8)|(thermal_Buff[26]);
-	tP[13] = (BYTE)(thermal_Buff[29] << 8)|(thermal_Buff[28]);
-	tP[14] = (BYTE)(thermal_Buff[31] << 8)|(thermal_Buff[30]);
-	tP[15] = (BYTE)(thermal_Buff[33] << 8)|(thermal_Buff[32]);
+	//tP[0] = (BYTE)((thermal_Buff[3] << 8)|(thermal_Buff[2]) - THERM_OFFSET);
+	//tP[1] = (BYTE)((thermal_Buff[5] << 8)|(thermal_Buff[4]) - THERM_OFFSET);
+	//tP[2] = (BYTE)((thermal_Buff[7] << 8)|(thermal_Buff[6]) - THERM_OFFSET);
+	//tP[3] = (BYTE)((thermal_Buff[9] << 8)|(thermal_Buff[8]) - THERM_OFFSET);
+	//tP[4] = (BYTE)((thermal_Buff[11] << 8)|(thermal_Buff[10]) - THERM_OFFSET);
+	//tP[5] = (BYTE)((thermal_Buff[13] << 8)|(thermal_Buff[12]) - THERM_OFFSET);
+	//tP[6] = (BYTE)((thermal_Buff[15] << 8)|(thermal_Buff[14]) - THERM_OFFSET);
+	//tP[7] = (BYTE)((thermal_Buff[17] << 8)|(thermal_Buff[16]) - THERM_OFFSET);
+	//tP[8] = (BYTE)((thermal_Buff[19] << 8)|(thermal_Buff[18]) - THERM_OFFSET);
+	//tP[9] = (BYTE)((thermal_Buff[21] << 8)|(thermal_Buff[20]) - THERM_OFFSET);
+	//tP[10] = (BYTE)((thermal_Buff[23] << 8)|(thermal_Buff[22]) - THERM_OFFSET);
+	//tP[11] = (BYTE)((thermal_Buff[25] << 8)|(thermal_Buff[24]) - THERM_OFFSET);
+	//tP[12] = (BYTE)((thermal_Buff[27] << 8)|(thermal_Buff[26]) - THERM_OFFSET);
+	//tP[13] = (BYTE)((thermal_Buff[29] << 8)|(thermal_Buff[28]) - THERM_OFFSET);
+	//tP[14] = (BYTE)((thermal_Buff[31] << 8)|(thermal_Buff[30]) - THERM_OFFSET);
+	//tP[15] = (BYTE)((thermal_Buff[33] << 8)|(thermal_Buff[32]) - THERM_OFFSET);
 	
+	tP[0] = (thermal_Buff[3] << 8)|(thermal_Buff[2]);
+	tP[1] = (thermal_Buff[5] << 8)|(thermal_Buff[4]);
+	tP[2] = (thermal_Buff[7] << 8)|(thermal_Buff[6]);
+	tP[3] = (thermal_Buff[9] << 8)|(thermal_Buff[8]);
+	tP[4] = (thermal_Buff[11] << 8)|(thermal_Buff[10]);
+	tP[5] = (thermal_Buff[13] << 8)|(thermal_Buff[12]);
+	tP[6] = (thermal_Buff[15] << 8)|(thermal_Buff[14]);
+	tP[7] = (thermal_Buff[17] << 8)|(thermal_Buff[16]);
+	tP[8] = (thermal_Buff[19] << 8)|(thermal_Buff[18]);
+	tP[9] = (thermal_Buff[21] << 8)|(thermal_Buff[20]);
+	tP[10] = (thermal_Buff[23] << 8)|(thermal_Buff[22]);
+	tP[11] = (thermal_Buff[25] << 8)|(thermal_Buff[24]);
+	tP[12] = (thermal_Buff[27] << 8)|(thermal_Buff[26]);
+	tP[13] = (thermal_Buff[29] << 8)|(thermal_Buff[28]);
+	tP[14] = (thermal_Buff[31] << 8)|(thermal_Buff[30]);
+	tP[15] = (thermal_Buff[33] << 8)|(thermal_Buff[32]);
+		
 	tPEC = thermal_Buff[34];
 	
 	//printf("TP : %d", tP);
@@ -90,11 +108,11 @@ BYTE* mesure_thermal(BYTE *thermal_Buff, BYTE size)
 	
 	//for(int i=0;i<16;i++)
 	//{
-		//printf("%d ", tP[i]);
+		//printf("%d ", (BYTE)tP[i]);
 	//}
 	//
 	//printf("\r\n");
-	
+	//
 	
 	//uart_putchar(tPEC);
 	
@@ -137,3 +155,15 @@ static int D6T_checkPEC( BYTE *buf, int pPEC )
 	return (crc == buf[pPEC]);
 }
 
+
+/*! \fn
+ *  \brief
+ *  \param 
+ *  \param 
+ *  \exception 
+ *  \return
+ */
+INT *getThermMatrix()
+{
+	return tP;	
+}

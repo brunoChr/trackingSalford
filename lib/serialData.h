@@ -65,7 +65,7 @@ typedef enum
 /*** PROTOTYPE ***/
 //BYTE checksumCalculation(BYTE *data, BYTE size);
 //BYTE computeCrc(BYTE *data, BYTE nbrOfBytes);
-extern BOOL sendFrameTh(const BYTE *data, BYTE sizeData);
+extern BOOL sendFrameTh(const INT *data, BYTE sizeData);
 extern BOOL sendFrameIr(BYTE id, UINT dataIr);
 extern BOOL sendFrameServo(BYTE id, BYTE position);
 

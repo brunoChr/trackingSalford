@@ -46,8 +46,8 @@
 #define DEBUG 0								//!< \Debug macro
 
 #define DELAY_TSENSOR		1					//!< Delay for task sensor in ms
-#define DELAY_TSERIALTX		40					//!< Delay for task serial tx in ms
-#define DELAY_TPROCESS		40					//!< Delay for task serial rx in ms
+#define DELAY_TSERIALTX		1					//!< Delay for task serial tx in ms
+#define DELAY_TPROCESS		25					//!< Delay for task serial rx in ms
 #define DELAY_TTRACKING		25					//!< Delay for task tracking in ms
 
 

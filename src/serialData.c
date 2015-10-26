@@ -9,6 +9,7 @@
 #include "../lib/serialData.h"
 #include <string.h>
 #include "../lib/uart.h"
+#include "../lib/thermal.h"
 
 /* TODO
 
@@ -20,7 +21,7 @@ static BYTE indexFrame;
 	
 
 /*** GLOBAL FUNCTION PROTOTYPE ***/
-BOOL sendFrameTh(const BYTE *data, BYTE sizeData);
+BOOL sendFrameTh(const INT *data, BYTE sizeData);
 BOOL sendFrameIr(BYTE id, UINT dataIr);
 
 /*** LOCAL FUNCTION PROTOTYPE ***/
@@ -35,7 +36,7 @@ static BYTE computeCrc(const BYTE *data, BYTE nbrOfBytes);
  *  \exception 
  *  \return error
  */
-BOOL sendFrameTh(const BYTE *data, BYTE sizeData)
+BOOL sendFrameTh(const INT *data, BYTE sizeData)
 {
 	/*** SERIAL PROTOCOL FORMAT ***/
 	/*** SB/ID/D0...D15/CS/..CN../EB ***/
@@ -43,10 +44,15 @@ BOOL sendFrameTh(const BYTE *data, BYTE sizeData)
 	trameData.sb = START_BYTE;
 	trameData.id = THERMAL_SENSOR;
 	
-	memcpy(trameData.data, data, sizeData);
+	for (indexFrame = 0; indexFrame < sizeData; indexFrame++)
+	{
+		trameData.data[indexFrame] = (BYTE)(data[indexFrame] - THERM_OFFSET);
+	}
+	
+	//memcpy(trameData.data, data, sizeData);
 	
 	trameData.cn = sizeData;
-	trameData.cs = computeCrc(data, sizeData);
+	trameData.cs = computeCrc((BYTE *)data, sizeData);		//<! \Missing data with this cast, TO DO !!
 	trameData.eb = END_BYTE;
 		
 	/*** POSSIBLE ERROR TRAITEMENT ***/
@@ -221,7 +227,7 @@ static BYTE computeCrc(const BYTE *data, BYTE nbrOfBytes)
 	BYTE crc = 0;
 	BYTE byteCtr;
 	BYTE bit;
-
+	
 	//calculates 8-Bit checksum with given polynomial
 	for (byteCtr = 0; byteCtr < nbrOfBytes; ++byteCtr)
 	{
