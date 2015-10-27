@@ -67,6 +67,7 @@ kalman_state kalman_init(double q, double r, double p, double x);
 void kalman_update(kalman_state *state, double measurement);
 double normalizeIr(UINT distance);
 double *normalizeTherm(INT *therm);
+float barycentre(int *matrix);
 
 /*** Prototype function main ***/
 static void setup(void);							//!< \Init function of the system
@@ -555,7 +556,7 @@ void taskTracking(void *p)
 {
 	servoT = servo_init();
 	
-	state = STATE_SCAN_LEFT;
+	state = STATE_OBJECT_DETECT;
 
 	servoT.position = servoT.timeMoy;
 	
@@ -639,15 +640,15 @@ void taskTracking(void *p)
 			
 			//printf("\r\n %f \r\n", thermNorm[THERMAL_TP_SIZE + 1]);
 			
-			if(flagSensorValueChanged)
-			{
-				if(thermNorm[THERMAL_TP_SIZE + 1] > THERM_SEUIL_DETECT)
-				{
-					printf("\r\nBack to tracking");
-					state = STATE_SCAN_LEFT;
-				}
-				flagSensorValueChanged = 0;
-			}
+			//if(flagSensorValueChanged)
+			//{
+				//if(thermNorm[THERMAL_TP_SIZE + 1] > THERM_SEUIL_DETECT)
+				//{
+					//printf("\r\nBack to tracking");
+					//state = STATE_SCAN_LEFT;
+				//}
+				//flagSensorValueChanged = 0;
+			//}
 			
 			break;
 			
@@ -732,6 +733,18 @@ void taskTracking(void *p)
 		
 			pwm_setOcr(servoT.timeMoy);
 			
+			if(flagSensorValueChanged)
+			{
+				printf("\r\n Barycentre : %f", barycentre(thermalDataPtr));
+				//
+				//if(thermNorm[THERMAL_TP_SIZE + 1] > THERM_SEUIL_DETECT)
+				//{
+					//printf("\r\nBack to tracking");
+					//state = STATE_SCAN_LEFT;
+				//}
+				flagSensorValueChanged = 0;
+			}
+					
 			//printf("\r\n %f \r\n", thermNorm[THERMAL_TP_SIZE + 1]);
 			
 			//while(servoT.dest_sh < servoT.timeMax) 
@@ -749,7 +762,7 @@ void taskTracking(void *p)
 			 //}
 		
 			//if(servoT.dest_sh > 179) state = STATE_IDDLE;
-			state = STATE_IDDLE;
+			//state = STATE_IDDLE;
 			
 			break;
 			

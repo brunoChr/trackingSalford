@@ -1,5 +1,6 @@
 #include "../lib/thermal.h"
 #include "../lib/uart.h"
+#include <math.h>
 
 /*** LOCAL FILE VARAIBLE ***/
 static INT tPTAT;
@@ -160,7 +161,7 @@ static float sum_x = 0;
 static float cog_x = 0;
 static float total_pixelValue = 0;
 
-	
+
 double gravityCenter(int *matrix)
 {
 	/*! \fn double gravityCenter(int matrix[])
@@ -199,5 +200,46 @@ double gravityCenter(int *matrix)
 	printf("\r\nCOg : %f", cog_x);
 
 	return cog_x;
+}
+
+static double moyenne, ecartType, min, max;
+static int i;//, j = 0;
+static double valeurx=0;
+static double nbPoint = 0;
+static int sum = 0;
+
+float barycentre(int *matrix)
+{
+	j = 1;
+	
+	for(i = 0; i < THERMAL_TP_SIZE ; i++)
+		sum+=matrix[i];
+	
+	moyenne = sum/THERMAL_TP_SIZE;
+	sum = 0;
+	
+	for(i = 0 ; i < THERMAL_TP_SIZE ; i++ )
+		sum += (matrix[i] - moyenne)*(matrix[i] - moyenne);
+		
+	ecartType = sqrt(sum/THERMAL_TP_SIZE);
+	 
+	
+	min = moyenne - ecartType;
+	max = moyenne + ecartType;
+	
+	for ( i = 0 ; i < THERMAL_TP_SIZE ; i++)
+	{
+		if (i >0 && matrix[i]%3)
+		j = 1;
+		if ((matrix[i] > min) && (matrix[i] < max))
+		{
+			valeurx +=j;
+			nbPoint++;
+		}
+		j++;
+	}
+	valeurx /=nbPoint;
+	
+	return valeurx;
 }
 

@@ -35,7 +35,7 @@
 //extern int D6T_checkPEC( BYTE *buf, int pPEC );
 INT * mesure_thermal(BYTE *thermal_Buff, BYTE size);
 double gravityCenter(int *matrix);
-
+extern float barycentre(int *matrix);
 
 
 	
