@@ -9,7 +9,7 @@
 #include "../lib/adc.h"
 
 
-/*** LOCAL FILE VARAIBLE ***/
+/*** LOCAL FILE VARIABLE ***/
 // Read infrared
 static UINT adcResultCh;
 //static UINT  distanceIR; // NOT USES AT THE TIME
@@ -110,10 +110,16 @@ UINT readInfraredFilter(BYTE adcPin)
 }
 
 
+/*! \fn
+ *  \brief
+ *  \param 
+ *  \param 
+ *  \exception 
+ *  \return
+ */
 UINT readInfrared(BYTE adcPin)
 {
 	adcResultCh = adc_read(adcPin);	
 	
 	return lookupInfrared(adcResultCh);
 }
-

@@ -156,12 +156,10 @@ static int D6T_checkPEC( BYTE *buf, int pPEC )
 }
 
 static int i,j = 1;
-static UINT sum_x = 0;
+static float sum_x = 0;
 static float cog_x = 0;
-static UINT total_pixelValue = 0;
+static float total_pixelValue = 0;
 
-static const UINT matrice[16] = {224, 5, 230, 0, 0, 226, 10, 20, 100, 230, 238, 248, 227, 225, 228, 241};
-	
 	
 double gravityCenter(int *matrix)
 {
@@ -183,10 +181,10 @@ double gravityCenter(int *matrix)
 		
 		if (((i%3) == 0) && (i>0))	j = 1;
 		
-		sum_x += matrice[i] * j;
+		sum_x += matrix[i] * j;
 		j++;
 		
-		total_pixelValue += matrice[i];
+		total_pixelValue += matrix[i];
 		printf("\r\nCOg : %f", cog_x);
 	}
 	

@@ -105,6 +105,9 @@
     <Compile Include="lib\cpu.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="lib\fusion.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="lib\generics.h">
       <SubType>compile</SubType>
     </Compile>
@@ -148,6 +151,9 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\adc.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\fusion.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\infrared.c">
