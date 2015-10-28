@@ -22,12 +22,12 @@
 #define PAS_DEGREE			(180/400)
 #define PAS_TIME_SERVO		0.5f
 
-static 	double position = 0;
-static  double cog_x = 0;
-const double offset = 1000; // 1ms offset : the servo range from 1ms to 2ms
+static 	double position = 0.0f;
+static  double cog_x = 0.0f, prevCog_x = 0.0f;
+static const double offset = 1000.0f; // 1ms offset : the servo range from 1ms to 2ms
 	
 	
-UINT get_termalTrackingValue(int *matrix, int outputType)
+UINT get_termalTrackingValue(UINT prevPos, int *matrix, int outputType)
 {
 	/*! \fn UINT get_termalTrackingValue(int matrix[], int outputType);
 	*	\brief give back the position for the servomotor, in degrees or duration of the high-state
@@ -36,21 +36,35 @@ UINT get_termalTrackingValue(int *matrix, int outputType)
 	*	\exception
 	*	\return the new position of the servo, in degrees or duration
 	*/
+	cog_x = 0.0f;
+	position = 1000.0f;
+	prevCog_x = 0.0f;
 	
-	cog_x = gravityCenter(matrix);
+	cog_x = barycentre(matrix);
 	
-	if (outputType == DEGREES)
-	{
-		position = (cog_x*100) * PAS_DEGREE;
-	}
-	else if (outputType == MILLISECONDS)
-	{
-		position = (cog_x*1000) * PAS_TIME_SERVO + offset;
-	}
-	else
-	{
-		position = (cog_x*1000) * PAS_TIME_SERVO + offset;
-	}
+	//printf("\r\nBary : %f", cog_x);
 	
-	return (int)position;
+	if(cog_x != prevCog_x)
+	{
+		if((cog_x >= 1.0f) && (cog_x <= 4.0f))	position += (cog_x*250.0f);
+		else position = prevPos;
+		prevCog_x = cog_x;
+	}
+	else position = prevPos;
+	
+	
+	//if (outputType == DEGREES)
+	//{
+		//position = (cog_x*100.0f) * PAS_DEGREE;
+	//}
+	//else if (outputType == MILLISECONDS)
+	//{
+		//position = ((cog_x*1000.0f) * PAS_TIME_SERVO) + offset;
+	//}
+	//else
+	//{
+		////position = (cog_x*1000.0f) * PAS_TIME_SERVO + offset;
+	//}
+	
+	return (UINT)position;
 }

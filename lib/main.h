@@ -51,8 +51,8 @@
 #define DELAY_TTRACKING		25					//!< Delay for task tracking in ms
 
 
-#define T_ACQ_IR	40	//<! \Acquisition period for IR in ms
-#define	T_ACQ_THERM 10	//<! \Acquisition period for thermal in ms
+#define T_ACQ_IR	10	//<! \Acquisition period for IR in ms
+#define	T_ACQ_THERM 20	//<! \Acquisition period for thermal in ms
 #define TIMEOUT_CMD	5	//<! \Timout in ms for received complete CMD : #x 
 
 #define DELAY_CMD	100	//in us

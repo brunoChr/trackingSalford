@@ -1,6 +1,7 @@
 #include "../lib/thermal.h"
 #include "../lib/uart.h"
-#include <math.h>
+#include "../lib/fusion.h"
+//#include <math.h>
 
 /*** LOCAL FILE VARAIBLE ***/
 static INT tPTAT;
@@ -8,12 +9,24 @@ static INT tP[THERMAL_TP_SIZE];
 static INT tPEC;
 static int check;
 static unsigned char crc;
-static int i;
+//static int i;
 static int indexTherm;
 static unsigned char temp;
+static int i, j = 1;
+//static float cog_x = 0;
+//static float total_pixelValue = 0;
+static double moyenne = 0.0f, ecartType = 0.0f, max = 0.0f;
+static double valeurx = 0.0f;
+static double nbPoint = 0.0f;
+static int cnt = 0;
 
+/*** LOCAL FUNCTION ***/
 static BOOL thermal_read(BYTE address, BYTE *data);
 static int D6T_checkPEC( BYTE *buf, int pPEC );
+
+/*** GLOBAL FUNCTION ***/
+double getMean(const INT *data, UINT sizeData);
+double getSDV(const INT *data, UINT sizeData, double mean);
 
 
 /*** TO DO !! 
@@ -156,90 +169,94 @@ static int D6T_checkPEC( BYTE *buf, int pPEC )
 	return (crc == buf[pPEC]);
 }
 
-static int i,j = 1;
-static float sum_x = 0;
-static float cog_x = 0;
-static float total_pixelValue = 0;
+//static int i,j = 1;
+//static float sum_x = 0;
+//static float cog_x = 0;
+//static float total_pixelValue = 0;
+//
+//
+//double gravityCenter(int *matrix)
+//{
+	///*! \fn double gravityCenter(int matrix[])
+	//*	\brief give back the gravity center of the matrix given in argument
+	//*	\param matrix : thermal matrix
+	//*	\exception
+	//*	\return the gravity center of the termal matrix
+	//*/
+//
+	//total_pixelValue = 0;
+	//sum_x = 0;
+	//cog_x = 0;
+	//
+	//for(i = 0 ; i< THERMAL_TP_SIZE ; i++)
+	//{
+		////printf("%d ", matrice[i]);
+		//
+		//if (((i%3) == 0) && (i>0))	j = 1;
+		//
+		//sum_x += matrix[i] * j;
+		//j++;
+		//
+		//total_pixelValue += matrix[i];
+		//printf("\r\nCOg : %f", cog_x);
+	//}
+	//
+	////printf("\r\nSum : %f", sum_x);
+	////printf("\r\nTot : %f", total_pixelValue);
+	//
+	//if(total_pixelValue == 0) total_pixelValue = 1;
+	//
+	//printf("\r\ntotal: %f, sum = %f", total_pixelValue, sum_x);		
+	//cog_x = sum_x/total_pixelValue;
+	//
+	//printf("\r\nCOg : %f", cog_x);
+//
+	//return cog_x;
+//}
 
 
-double gravityCenter(int *matrix)
+double barycentre(int *matrix)
 {
-	/*! \fn double gravityCenter(int matrix[])
-	*	\brief give back the gravity center of the matrix given in argument
-	*	\param matrix : thermal matrix
-	*	\exception
-	*	\return the gravity center of the termal matrix
-	*/
-	
+	j = 0;
+	//sum_x = 0;
+	moyenne = 0.0f;
+	ecartType = 0.0f;
+	//min = 0;
+	max = 0.0f;
+	valeurx = 0.0f;
+	nbPoint = 0.0f;
+	cnt = 0;
 
-	total_pixelValue = 0;
-	sum_x = 0;
-	cog_x = 0;
-	
-	for(i = 0 ; i< THERMAL_TP_SIZE ; i++)
-	{
-		//printf("%d ", matrice[i]);
-		
-		if (((i%3) == 0) && (i>0))	j = 1;
-		
-		sum_x += matrix[i] * j;
-		j++;
-		
-		total_pixelValue += matrix[i];
-		printf("\r\nCOg : %f", cog_x);
-	}
-	
-	//printf("\r\nSum : %f", sum_x);
-	//printf("\r\nTot : %f", total_pixelValue);
-	
-	if(total_pixelValue == 0) total_pixelValue = 1;
-	
-	printf("\r\ntotal: %f, sum = %f", total_pixelValue, sum_x);		
-	cog_x = sum_x/total_pixelValue;
-	
-	printf("\r\nCOg : %f", cog_x);
-
-	return cog_x;
-}
-
-static double moyenne, ecartType, min, max;
-static int i;//, j = 0;
-static double valeurx=0;
-static double nbPoint = 0;
-static int sum = 0;
-
-float barycentre(int *matrix)
-{
-	j = 1;
-	
-	for(i = 0; i < THERMAL_TP_SIZE ; i++)
-		sum+=matrix[i];
-	
-	moyenne = sum/THERMAL_TP_SIZE;
-	sum = 0;
-	
-	for(i = 0 ; i < THERMAL_TP_SIZE ; i++ )
-		sum += (matrix[i] - moyenne)*(matrix[i] - moyenne);
-		
-	ecartType = sqrt(sum/THERMAL_TP_SIZE);
+	moyenne = getMean(matrix, THERMAL_TP_SIZE);
+	ecartType = getSDV(matrix, THERMAL_TP_SIZE, moyenne);
 	 
-	
-	min = moyenne - ecartType;
+	//min = moyenne - ecartType;
 	max = moyenne + ecartType;
 	
-	for ( i = 0 ; i < THERMAL_TP_SIZE ; i++)
+	for (i = 0; i < THERMAL_TP_SIZE; i++)
 	{
-		if (i >0 && matrix[i]%3)
-		j = 1;
-		if ((matrix[i] > min) && (matrix[i] < max))
+		j++;
+		cnt++;
+		//printf("j : %d\n", j);
+		//if ((matrix[i] > min) && (matrix[i] < max))
+		if (matrix[i] > max)
 		{
-			valeurx +=j;
+			valeurx += j;
 			nbPoint++;
 		}
-		j++;
+		if (cnt == 4)
+		{
+			j = 0;
+			cnt = 0;
+		}
 	}
-	valeurx /=nbPoint;
 	
+	if(nbPoint != 0.0f)	valeurx /= nbPoint;
+	else valeurx = 0.0f;
+	
+	//printf("Valeur_x = %f\n", valeurx);
+	//printf("NbPoint = %f\n", nbPoint);
+	//
 	return valeurx;
 }
 

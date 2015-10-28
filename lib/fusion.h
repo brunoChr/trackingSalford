@@ -21,5 +21,7 @@
 /*** PROTOTYPE GLOBAL FUNCTION ***/
 extern double normalizeIr(UINT distance);
 extern double *normalizeTherm(INT *therm);
+extern double getMean(const INT *data, UINT sizeData);
+extern double getSDV(const INT *data, UINT sizeData, double mean);
 
 #endif /* FUSION_H_ */

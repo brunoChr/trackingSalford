@@ -26,7 +26,8 @@
 
 
 #define SERVO_TIME_LOW	1000  //<! \in us
-#define SERVO_TIME_HIGH 2000  
+#define SERVO_TIME_HIGH 2000
+#define SERVO_TIME_MIDDLE ((SERVO_TIME_HIGH + SERVO_TIME_LOW)/2)  
 
 #define FRAME_RATE          25    // milliseconds per frame
 #define SERVO_SPEED			200   // this the time in ms to move 60 degrees
@@ -35,8 +36,8 @@
 
 
 /*** EASING ***/
-#define  FILTER_SERVO			0.01f
-#define  MINUS_FILTER_SERVO		(1 - FILTER_SERVO)
+#define  FILTER_SERVO			0.05f
+#define  MINUS_FILTER_SERVO		(1.0f - FILTER_SERVO)
 
 /*!
  * servo class.
@@ -58,8 +59,8 @@ typedef struct
 	INT pgain; 	 //<! \.
 	INT igain; 	 //<! \.
 	INT dgain; 	 //<! \.
-	FLOAT dest;
-	FLOAT dest_sh;
+	INT dest;
+	INT dest_sh;
 
 } servo;
 

@@ -13,12 +13,10 @@
 
 //#define NB_LINE				4			//line number of the thermal matrix
 //#define NB_ROW				4			//row number of the thermal matrix
-#define DEGREES				1			//Indication for the position type we want for the PWM
-#define MILLISECONDS		2			//Indication for the type of position we want for the PWM
 
 #define THERM_MIN	0.0f
 #define THERM_MAX	400.0f
-#define THERM_SEUIL_DETECT 310.0f
+#define THERM_SEUIL_DETECT 270.0f
 
 ///*** GLOBALS STATIC VARIABLE ***/
 //extern BYTE tPTAT;
@@ -35,7 +33,7 @@
 //extern int D6T_checkPEC( BYTE *buf, int pPEC );
 INT * mesure_thermal(BYTE *thermal_Buff, BYTE size);
 double gravityCenter(int *matrix);
-extern float barycentre(int *matrix);
+extern double barycentre(int *matrix);
 
 
 	
