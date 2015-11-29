@@ -35,6 +35,17 @@ double getSDV(const INT *data, UINT sizeData, double mean);
 */
 
 
+thermal thermal_init()
+{
+	thermal result;
+	
+	result.centreX = (4/2);
+	result.bary = 0.0f;
+	
+	return(result);
+}
+
+
 /*! \fn
  *  \brief
  *  \param 

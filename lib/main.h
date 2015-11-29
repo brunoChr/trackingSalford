@@ -18,7 +18,9 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/sleep.h>
-#include <avr/iom128.h>
+//#include <avr/iom128.h>
+//#include <avr/iom328.h>
+//#include <avr/iom2560.h>
 
 #include "../lib/cpu.h"
 #include "../lib/twi.h"

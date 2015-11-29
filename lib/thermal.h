@@ -18,6 +18,21 @@
 #define THERM_MAX	400.0f
 #define THERM_SEUIL_DETECT 270.0f
 
+
+/*!
+ * servo class.
+ * \extends
+ * \brief
+ */ 
+typedef struct
+{
+	INT centreX;
+	double bary;
+	INT translate;
+
+} thermal;
+
+
 ///*** GLOBALS STATIC VARIABLE ***/
 //extern BYTE tPTAT;
 //extern BYTE tP[THERMAL_TP_SIZE];
@@ -34,7 +49,7 @@
 INT * mesure_thermal(BYTE *thermal_Buff, BYTE size);
 double gravityCenter(int *matrix);
 extern double barycentre(int *matrix);
-
+extern thermal thermal_init();
 
 	
 #endif
