@@ -33,31 +33,21 @@ volatile const UINT *ptrDistR = &distanceIrRight;				//!< \Same
 */
 
 static double distIrLeftNorm, distIrRightNorm;
-
 static flagReceive flagRx;				//<! \Maybe structure is useless to see !!! WARNING !!
 static compteur cpt;					//<! \Struct use for counters : sensor ir, therm, timeout ...
 static BOOL flagSensorValueChanged;		//<! \Flag is set when data are ready
 static volatile UINT state;
-static INT angleServo;
-
-static mailbox_t mb_dataIrLeft, mb_dataIrRight;
-
+static mailbox_t mb_dataIrLeft, mb_dataIrRight;		//<! \data queue to pass data between task
 static volatile INT currentDiffMean;
 static BYTE prevDiffMean;
-
 static servo servoT;
 static thermal thermT;
-
-static kalman_state kalmanIrR;
-static kalman_state kalmanIrL;
-static kalman_state kalmanTherm;
-
-static BOOL flagDiffReceive;
-static int dur = 100; //duration is 100 loops
-				
+static kalman_state kalmanIrR;		//<! \Structure for kalman filter for right IR	
+static kalman_state kalmanIrL;		//<! \Structure for kalman filter for left sensor
+static kalman_state kalmanTherm;	//<! \Structure for kalman filter for thermal cam !!! USELESS !!!
 
 /*** GLOBAL VARIABLE ***/
-SHORT pos;
+SHORT pos;							//<! \Position of the servo motor 0 - 180 °
 
 /*** GLOBAL FUNCTION ***/
 BOOL sendFrameTh(const INT *data, BYTE sizeData);
@@ -92,24 +82,7 @@ void taskTracking(void *p);						//!< \Task tracking
 //<! \[+]Setup the TIMER1_COMPA interrupt - it will be our tick interrupt.
 TASK_ISR(TIMER1_COMPA_vect, tick_interrupt());
 
-float sqrt1(const float x)
-{
-	union
-	{
-		int i;
-		float x;
-	} u;
-	u.x = x;
-	u.i = (1<<29) + (u.i >> 1) - (1<<22);
-	
-	// Two Babylonian Steps (simplified from:)
-	// u.x = 0.5f * (u.x + x/u.x);
-	// u.x = 0.5f * (u.x + x/u.x);
-	u.x =       u.x + x/u.x;
-	u.x = 0.25f*u.x + x/u.x;
 
-	return u.x;
-}
 /*!
  * Main function.
  *
@@ -121,7 +94,6 @@ int main(void)
 
 	/*** VARIABLE INITIALISATION ***/
 	
-
 	/*** SETUP SYSTEM ***/
 	setup();				
 	
@@ -147,12 +119,7 @@ int main(void)
 	// as we need the sleep to be interruptable by the tick interrupt.
 	set_sleep_mode(SLEEP_MODE_IDLE);
 
-	#if UART
-	//printf("\n%d;%d", distanceIrRight, distanceIRrLeft);
-	#endif
-
-
-	initialise_mbox(&mb_dataIrLeft, 0, 0); 
+	initialise_mbox(&mb_dataIrLeft, 0, 0);		//<! \Initialise mailbox to transfer data
 	initialise_mbox(&mb_dataIrRight, 0, 0); 
 		
 	//<! \[+]Create tasks.
@@ -161,14 +128,11 @@ int main(void)
 	create_task(taskSerialTxRx, 0, 0, 150U, 90U, 0);
 	create_task(taskTracking, 0, 0, 1000U, 80U,  0);
 	//create_task(taskProcessing, 0, 0, 150U, 80U,  0);
-	
 
 	init_timer(1000U);	//!< \Set TIMER1_COMPA interrupt to tick every 80,000 clock cycles.
 
 	//<! \[+]Start the RTOS - note that this function will never return.
 	task_switcher_start(idle_task, 0, 65U, 80U);
-
-
 	
 	/*** NO INFINITE LOOP IN MAIN : RTOS RUN ***/
 		 	 
@@ -183,7 +147,7 @@ ISR(TIMER3_OVF_vect)
 	* overflow du timer1
 	*/
 	
-	//PORTE |= (1 <<PE3);
+	PORTE |= (1 <<PE3);
 }
 
 ISR(TIMER3_COMPA_vect)
@@ -192,16 +156,12 @@ ISR(TIMER3_COMPA_vect)
 	* Routine d'interruption activee lors du compare match
 	* entre ocr1 (temps à l'état haut) et timer1
 	*/
-	//PORTE|= (0 << PE3);
+	PORTE|= (0 << PE3);
 }
 
 
-/*! \fn
- *  \brief
- *  \param 
- *  \param 
- *  \exception 
- *  \return
+/*! \fn		void setup(void)
+ *  \brief	Setup the sytem
  */
 static void setup(void)
 {
@@ -223,15 +183,15 @@ static void setup(void)
 	#if LCD
 	LCD_init();
 	LCD_write("Tracking");
-	LCD_command(LCD_LINE2 | 0); // move cursor  to row 2, position 5
+	LCD_command(LCD_LINE2 | 0);		//!< \move cursor  to row 2, position 5
 	LCD_write("Team WTF");
 	#endif
 	
 	#if I2C
-	if(!twi_init(100000)) // Init I2C  with 100KHz bitrate.
+	if(!twi_init(100000)) //!< \Init I2C  with 100KHz bitrate.
 	{
 		printf("\nError in initiating I2C interface.");
-		//while(1);
+		while(1);
 	}
 	#endif
 	
@@ -239,12 +199,9 @@ static void setup(void)
 }
 
 
-/*! \fn
- *  \brief
- *  \param 
- *  \param 
- *  \exception 
- *  \return
+/*! \fn		void delay_ms(unsigned int t)
+ *  \brief	wait
+ *  \param	t : time to wait in ms
  */
 void delay_ms(unsigned int t)
 {
@@ -252,45 +209,36 @@ void delay_ms(unsigned int t)
 }
 
 
-/*! \fn
- *  \brief
- *  \param 
- *  \param 
- *  \exception 
- *  \return
+/*! \fn		void taskSensor(void *p)
+ *  \brief	Sensor task : acquire, filtering
+ *  \param	*p : Pointer to the task
  */
 void taskSensor(void *p)
 {	
-	kalmanIrR = kalman_init(0.5f, 50, 1, 300); // IR sharp Covariance r constant between 40-400mm; Initial mesurement x = 300mm
+	kalmanIrR = kalman_init(0.5f, 50, 1, 300); //!< \IR sharp Covariance r constant between 40-400mm; Initial mesurement x = 300mm
 	kalmanIrL = kalman_init(0.5f, 50, 1, 300);
-		
-	//int i = 0;
-	//delay_ms(1000);
 	
 	while(1)	
 	{
-		//printf("\nUart : %d", uart_kbhit());
-		//uart_putchar('a');
-
 		//<! \Timing : 1 Sample every 10ms for IR
 		if (cpt.cptIr > T_ACQ_IR)
 		{
-			//distanceIrRight = readInfraredFilter(ADC_CH_IR_RIGHT);	// Mod filter
+			//distanceIrRight = readInfraredFilter(ADC_CH_IR_RIGHT);	//!< \Moving average filter
 			//distanceIRrLeft = readInfraredFilter(ADC_CH_IR_LEFT);
-			distanceIrRight = readInfrared(ADC_CH_IR_RIGHT);			// Raw value
+			distanceIrRight = readInfrared(ADC_CH_IR_RIGHT);			//!< \Raw ADC value
 			distanceIrLeft = readInfrared(ADC_CH_IR_LEFT);
 			
-			kalman_update(&kalmanIrR, distanceIrRight);
+			kalman_update(&kalmanIrR, distanceIrRight);					//!< \Update kalman prediction
 			kalman_update(&kalmanIrL, distanceIrLeft);
 
-			distIrRightNorm = normalizeIr((UINT)kalmanIrR.x);			
+			distIrRightNorm = normalizeIr((UINT)kalmanIrR.x);			//!< \Normalise value for sensor fusion		
 			distIrLeftNorm = normalizeIr((UINT)kalmanIrL.x);
 			
-			write_mbox_now(&mb_dataIrRight, &kalmanIrR.x);
+			write_mbox_now(&mb_dataIrRight, &kalmanIrR.x);				//!< \Add data to mailboxe
 			write_mbox_now(&mb_dataIrLeft, &kalmanIrL.x);
 			
-			cpt.cptIr = 0;								//<! \Reset cpt
-			//flagSensorValueChanged = 1;
+			cpt.cptIr = 0;												//<! \Reset cpt
+			flagSensorValueChanged = 1;									//!< \Sensor values changed
 		}
 		
 		//<! \Timing : 1 Sample every 40ms for Thermal
@@ -301,24 +249,12 @@ void taskSensor(void *p)
 			thermalDataPtr = mesure_thermal(thermal_Buff, THERMAL_BUFF_SIZE - 1) ;			//<! \Mesure of the thermal
 			thermNorm = normalizeTherm(thermalDataPtr);
 			
+			/* DEBUG */
 			//printf("\r\nMeanTherm : %f, SDV : %f", getMean(thermalDataPtr, THERMAL_TP_SIZE), getSDV(thermalDataPtr, THERMAL_TP_SIZE,getMean(thermalDataPtr, THERMAL_TP_SIZE)));
 			//printf("\r\nMean : %f", getMean(thermalDataPtr, THERMAL_TP_SIZE));
 			//printf("\r\nState : %d", state);
 			
-			//if(state != STATE_OBJECT_DETECT)
-			//{
-				//printf("\r\ntest, state :%d", state);
-				//
-				//if(getMean(thermalDataPtr, THERMAL_TP_SIZE) > THERM_SEUIL_DETECT)
-				//{
-					//state = STATE_OBJECT_DETECT;
-					//pwm_setOcr(servoT.timeMoy);
-					//printf("\r\nDetect ...\r\n");
-				//}
-				//
-			//}
-			
-			flagSensorValueChanged = 1;
+			flagSensorValueChanged = 1;					//!< \Sensor values changed
 		}
 		
 		/*** TEST LCD ***/
@@ -326,9 +262,9 @@ void taskSensor(void *p)
 		//LCD_write(lcdBuffer);
 		//LCD_command(LCD_CLR);
 				
-		//if((++cpt.cptIr < 255) && (++cpt.cptTherm < 255)); //<! \increment cpt every ms
-		cpt.cptIr++;
-		cpt.cptTherm++;
+		//if((++cpt.cptIr < 255) && (++cpt.cptTherm < 255));	//<! \increment cpt every ms
+		cpt.cptIr++;											//<! \increment cpt every ms
+		cpt.cptTherm++;											//<! \increment cpt every ms
 
 		uart_putchar('\n');
 		uart_putchar('\r');
@@ -338,21 +274,17 @@ void taskSensor(void *p)
 }
 
 
-/*! \fn
- *  \brief
- *  \param 
- *  \param 
- *  \exception 
- *  \return
+/*! \fn		void taskSerialTxRx(void *p)
+ *  \brief	Task serial communication : receive command, send frame
+ *  \param	p* : pointer to the task
  */
-volatile char rxData = ' ';
+
+volatile char rxData = ' ';		//<! \Variable of receive data
 
 void taskSerialTxRx(void *p)
 {
 	//static UINT timeout;
-	//delay_ms(1000);
-	
-	static int nbrAcqu = 0, i =0;
+	//delay_ms(1000);			//<! \Delay at first
 
 	while(1)
 	{	
@@ -375,19 +307,11 @@ void taskSerialTxRx(void *p)
 			//}
 		//}
 		
-		//if(uart_kbhit())
-		//{
-			//uart_flush();
-			//i = 0;
-		//}
-		//printf("\n\rKnbit : %d", uart_kbhit());
-		
-		if(uart_kbhit())
-		//if(0)
+		if(uart_kbhit())	//<! \If a byte is received
 		{		
-			if((rxData = uart_getchar()))
+			if((rxData = uart_getchar()))	//<! \Get the receive char
 			{
-				if(rxData == CMD_START)
+				if(rxData == CMD_START)		//<! \If the receive char is the header of a command
 				{	
 					flagRx.start = 1;
 					//timeout = cpt.cptTimeoutCpt;
@@ -417,7 +341,7 @@ void taskSerialTxRx(void *p)
 					/*if((cpt.cptTimeoutCpt - timeout) < TIMEOUT_CMD) break;
 						flagRx.start = 0; -> don't rece;
 					*/ 
-					if (rxData == CMD_IRL)
+					if (rxData == CMD_IRL)			//<! \If the host require data of IR sensor left
 					{
 						#if VERBOSE
 						uart_putchar('L');
@@ -432,11 +356,11 @@ void taskSerialTxRx(void *p)
 						//_delay_us(DELAY_CMD);
 						
 						/*** TEST RIR ***/
-						sendFrameIr(IR_L_SENSOR, distanceIrLeft);
+						sendFrameIr(IR_L_SENSOR, distanceIrLeft);		//<! \Send frame with the Left sensor
 					
 						flagRx.start = 0;
 					}
-					else if(rxData == CMD_IRR)
+					else if(rxData == CMD_IRR)	//<! \If the host require data of IR sensor right
 					{
 
 						#if VERBOSE
@@ -452,11 +376,11 @@ void taskSerialTxRx(void *p)
 						//_delay_us(DELAY_CMD);
 										
 						/*** TEST RIR ***/
-						sendFrameIr(IR_R_SENSOR, distanceIrRight);
+						sendFrameIr(IR_R_SENSOR, distanceIrRight); //<! \Send the frame with data IR right
 					
 						flagRx.start = 0;
 					}
-					else if(rxData == CMD_THERM)
+					else if(rxData == CMD_THERM)			//<! \If the host require data of thermal camera
 					{
 						//printf("\r\nCMD THERM");
 						#if VERBOSE
@@ -472,11 +396,11 @@ void taskSerialTxRx(void *p)
 						//_delay_us(DELAY_CMD);
 										
 						/*** TEST THERMAL SENSOR ***/
-						sendFrameTh(thermalDataPtr, NBR_DATA);
+						sendFrameTh(thermalDataPtr, NBR_DATA);		//<! \Send frame with data from thermal camera
 										
 						flagRx.start = 0;
 					}
-					else if(rxData == CMD_SERVO)
+					else if(rxData == CMD_SERVO)					//<! \If host require the position of servo
 					{
 						//printf("\r\nCMD SERVO");
 						#if VERBOSE
@@ -490,14 +414,14 @@ void taskSerialTxRx(void *p)
 										
 						/*** WARNING ! MAYBE INTRODUCE A DELAY HERE ***/
 						//_delay_us(DELAY_CMD);
-							
-						sendFrameServo(SERVO_MOTOR, pos);
+						
+						/*** TEST SEND SERVO ***/							
+						sendFrameServo(SERVO_MOTOR, pos);					//<! \Send the position of the servo
 										
-						/*** TEST SEND SERVO ***/
 						flagRx.start = 0;
 					}
 					
-					else if(rxData == CMD_SERVO_TURN_LEFT)
+					else if(rxData == CMD_SERVO_TURN_LEFT)					//<! \If the host want to move the servo to the left
 					{
 						rxData = ' ';			
 										
@@ -525,7 +449,7 @@ void taskSerialTxRx(void *p)
 						}							
 					}
 
-					else if(rxData == CMD_SERVO_TURN_RIGHT)
+					else if(rxData == CMD_SERVO_TURN_RIGHT)			//<! \If the host want to move the servo to the right
 					{
 						rxData = ' ';
 						
@@ -565,6 +489,7 @@ void taskSerialTxRx(void *p)
 										
 						/*** WARNING ! MAYBE INTRODUCE A DELAY HERE ***/
 						
+						/*** Go to Iddle state ***/
 						state = STATE_IDDLE;
 										
 						//printf("\r\nCMD UNKNOWN");
@@ -585,21 +510,15 @@ void taskSerialTxRx(void *p)
 	}
 }
 
-
-static float cog = 0.0f;
-
-/*! \fn
- *  \brief
- *  \param 
- *  \param 
- *  \exception 
- *  \return
+/*! \fn		void taskTracking(void *p)
+ *  \brief	Task tracking : compute centroid from thermal cam and track
+ *  \param	*p: pointer to the task
  */
 
 void taskTracking(void *p)
 {
-	servoT = servo_init();
-	thermT = thermal_init();
+	servoT = servo_init();			//<! \Init the servo tracking struct
+	thermT = thermal_init();		//<! \Init the thermal struct
 	
 	servoT.position = servoT.timeMoy;
 	
@@ -611,11 +530,11 @@ void taskTracking(void *p)
 	
 	delay_ms(SERVO_TIME_DEGREE*180);
 	
-	state = STATE_OBJECT_DETECT;
+	state = STATE_OBJECT_DETECT;		
 	
 	while(1)
 	{
-		switch (state)
+		switch (state)		//<! \State machine for tracking
 		{
 		
 		case STATE_TURN_LEFT:
@@ -634,6 +553,7 @@ void taskTracking(void *p)
 			
 			pwm_setPosition(servoT.position);
 			
+			/*** Return in idle state after turn left ***/
 			state = STATE_IDDLE;
 			break;
 			
@@ -646,7 +566,6 @@ void taskTracking(void *p)
 			
 			servoT.position += currentDiffMean/5;
 			
-			
 			if (servoT.position >= 180)
 			{
 				servoT.position = 180;
@@ -654,78 +573,48 @@ void taskTracking(void *p)
 			
 			pwm_setPosition(servoT.position);
 			
+			/*** Return in idle state after turn right ***/
 			state = STATE_IDDLE;
+			
 			break;
 		
 		case STATE_IDDLE:
 
-			//servoTrackeur.position = servoTrackeur.position; //<! \Useless
-			
-			//printf("\r\n %f \r\n", thermNorm[THERMAL_TP_SIZE + 1]);
-			
-			//if(flagSensorValueChanged)
-			//{
-				//if(thermNorm[THERMAL_TP_SIZE + 1] > THERM_SEUIL_DETECT)
-				//{
-					//printf("\r\nBack to tracking");
-					//state = STATE_SCAN_LEFT;
-				//}
-				//flagSensorValueChanged = 0;
-			//}
-			
-			state = STATE_IDDLE;
-			break;
-			
-		case STATE_SCAN_LEFT:
-		
-			for(servoT.position = servoT.timeMin; servoT.position < servoT.timeMax; servoT.position += 5)
+			//servoTrackeur.position = servoTrackeur.position; //<! \For debug useless
+
+			/*** Test implemented function who swith to tracking when person detect ***/
+			if(flagSensorValueChanged)
 			{
-				pwm_setOcr(servoT.position);
-				//pwm_setPosition(servoT.position);
-				//servoTrackeur.position -= 1;
-				delay_ms(SERVO_TIME_DEGREE);
+				if(thermNorm[THERMAL_TP_SIZE + 1] > THERM_SEUIL_DETECT)
+				{
+					printf("\r\nBack to tracking");
+					state = STATE_SCAN_LEFT;
+				}
+				flagSensorValueChanged = 0;
 			}
 			
-			//servoT.dest = servoT.timeMin;
-			//servoT.dest_sh = 0;
-			//
-			//while(servoT.dest_sh > servoT.timeMin)
-			//{
-				//servoT.dest_sh = (servoT.dest_sh*MINUS_FILTER_SERVO) + servoT.dest*FILTER_SERVO;
-				//pwm_setOcr(servoT.dest_sh);
-				////pwm_setPosition(servoT.dest_sh);
-				//delay_ms(1);
-			//}
-			//
+			state = STATE_IDDLE;
+
+			break;
 			
-			//servoTrackeur.error = 180 - pos;
-			//servoCommand(servoTrackeur);
+		case STATE_SCAN_LEFT:	//<! \Turn left to search people
 			
-			//servoTrackeur.position -= 10;
-			//if ((servoTrackeur.position -= 10) < 0)
-			//{
-				//servoTrackeur.position = 0;
-				//printf("\r\nAngle zero");
-				//state = STATE_SCAN_RIGHT;
-			//}
-			//else
-			//{
-				//state = STATE_SCAN_LEFT;
-			//}
+			servoT.dest = servoT.timeMin;
+			servoT.dest_sh = 0;
+			
+			while(servoT.dest_sh > servoT.timeMin)
+			{
+				servoT.dest_sh = (servoT.dest_sh*MINUS_FILTER_SERVO) + servoT.dest*FILTER_SERVO;	//<! \First order filetring for easing servo
+				pwm_setOcr(servoT.dest_sh);
+				//pwm_setPosition(servoT.dest_sh);
+				delay_ms(1);
+			}
 				
 			state = STATE_SCAN_RIGHT;	
 			break;
 		
-		case STATE_SCAN_RIGHT:
+		case STATE_SCAN_RIGHT:	//<! \Turn right to search people
 
-			//for(servoT.position = servoT.timeMax; servoT.position > servoT.timeMin; servoT.position -= 5)
-			//{
-				//pwm_setOcr(servoT.position);
-				////pwm_setPosition(servoT.position);
-				////servoTrackeur.position -= 1;
-				//delay_ms(SERVO_TIME_DEGREE);
-			//}
-			
 			servoT.position = servoT.timeMax;
 			servoT.dest_sh = 0;
 						
@@ -736,145 +625,83 @@ void taskTracking(void *p)
 				//pwm_setPosition(servoT.dest_sh);
 				delay_ms(1);
 			}
-
-			//servoTrackeur.position += 10;
-			//if ((servoTrackeur.position += 10) > 180)
-			//{
-				//servoTrackeur.position = 180;
-				//printf("\r\nAngle 180");
-				//state = STATE_SCAN_LEFT;
-			//}
-			//else
-			//{
-				//state = STATE_SCAN_RIGHT;
-			//}
 			
 			state = STATE_SCAN_LEFT;
 			break;
 		
-		case STATE_OBJECT_DETECT:
+		case STATE_OBJECT_DETECT:			//<! \When an object is detect
 		
 			thermT.bary = 0.0f;
 			
 			if (flagSensorValueChanged)
 			{	
 				flagSensorValueChanged = 0;
-				//servoT.position = 0;
-				//servoT.dest_sh = 0;
-				//servoT.dest_sh = 1000U;
 				
-				thermT.bary = barycentre(thermalDataPtr);
-				//thermT.translate = thermT.centreX - thermT.bary;
+				thermT.bary = barycentre(thermalDataPtr);				//<! \Calcultate centroid of the thermal matrix
+				//thermT.translate = thermcentreXT. - thermT.bary;		
 				
 				//printf("\r\nCog : %f, KL : %d, KR: %d", thermT.bary, (UINT)kalmanIrL.x, (UINT)kalmanIrR.x);
 				
 				//servoT.position = get_termalTrackingValue(servoT.prevPosition, thermalDataPtr, MILLISECONDS);
-				//if(!((((UINT)kalmanIrL.x % (UINT)kalmanIrR.x) < 50.0f) || (((UINT)kalmanIrR.x % (UINT)kalmanIrL.x) < 50.0f))) 
-				//{
-					if((thermT.bary > 2.5f) && (((UINT)kalmanIrL.x % (UINT)kalmanIrR.x)) > 50)
-					{
-						//servoT.position = get_termalTrackingValue(servoT.prevPosition, thermalDataPtr, 2);
-				//
-						//while(servoT.dest_sh < (servoT.position - 100))
-						//{
-							//servoT.dest_sh = (servoT.dest_sh*MINUS_FILTER_SERVO) + servoT.position*FILTER_SERVO;
-							//printf("\r\nDest : %d, DestSh : %d", servoT.position, servoT.dest_sh);
-							//pwm_setOcr(servoT.dest_sh);
-							////pwm_setPosition(servoT.dest_sh);
-							//delay_ms(1);
-						//}
-						//
-						//servoT.prevPosition = servoT.position;
-						
-						servoT.position += 50*thermT.bary;
-						if(servoT.position > servoT.timeMax) servoT.position = servoT.timeMax;
-						pwm_setOcr(servoT.position);
-						delay_ms(1);
-						printf("\r\nPos++ : %d", servoT.position);
-					}
-					else if((thermT.bary < 2.5f) && (thermT.bary > 0.0f) && (((UINT)kalmanIrR.x % (UINT)kalmanIrL.x)) > 50)
-					{
-						//servoT.position = get_termalTrackingValue(servoT.prevPosition, thermalDataPtr, 2);
-						//
-						//while(servoT.dest_sh < (servoT.position - 100))
-						//{
+				if((thermT.bary > 2.5f) && (((UINT)kalmanIrL.x % (UINT)kalmanIrR.x)) > 50)
+				{
+					//servoT.position = get_termalTrackingValue(servoT.prevPosition, thermalDataPtr, 2);
+			
+					//while(servoT.dest_sh < (servoT.position - 100))
+					//{
 						//servoT.dest_sh = (servoT.dest_sh*MINUS_FILTER_SERVO) + servoT.position*FILTER_SERVO;
 						//printf("\r\nDest : %d, DestSh : %d", servoT.position, servoT.dest_sh);
 						//pwm_setOcr(servoT.dest_sh);
 						////pwm_setPosition(servoT.dest_sh);
 						//delay_ms(1);
-						//}
-						//
-						//servoT.prevPosition = servoT.position;
-						servoT.position -= 50*thermT.bary;
-						if(servoT.position < servoT.timeMin) servoT.position = servoT.timeMin;
-						pwm_setOcr(servoT.position);
-						delay_ms(1);
-						printf("\r\nPos-- : %d", servoT.position);
-					}
-					//else if(((((UINT)kalmanIrL.x % (UINT)kalmanIrR.x)) > 100))	// Object detect a extreme gauche
-					//{
-						//servoT.position = servoT.timeMin;
-						//pwm_setOcr(servoT.position);
-						//delay_ms(10);
 					//}
-					//else if(((((UINT)kalmanIrR.x % (UINT)kalmanIrL.x)) > 100))	// Object detect a extreme droite
+					//
+					//servoT.prevPosition = servoT.position;
+						
+					servoT.position += 50*thermT.bary;
+					if(servoT.position > servoT.timeMax) servoT.position = servoT.timeMax;
+					pwm_setOcr(servoT.position);
+					delay_ms(1);
+					printf("\r\nPos++ : %d", servoT.position);
+				}
+				else if((thermT.bary < 2.5f) && (thermT.bary > 0.0f) && (((UINT)kalmanIrR.x % (UINT)kalmanIrL.x)) > 50)
+				{
+					//servoT.position = get_termalTrackingValue(servoT.prevPosition, thermalDataPtr, 2);
+					//
+					//while(servoT.dest_sh < (servoT.position - 100))
 					//{
-						//servoT.position = servoT.timeMax;
-						//pwm_setOcr(servoT.position);
-						//delay_ms(10);
+					//servoT.dest_sh = (servoT.dest_sh*MINUS_FILTER_SERVO) + servoT.position*FILTER_SERVO;
+					//printf("\r\nDest : %d, DestSh : %d", servoT.position, servoT.dest_sh);
+					//pwm_setOcr(servoT.dest_sh);
+					////pwm_setPosition(servoT.dest_sh);
+					//delay_ms(1);
 					//}
-					else servoT.position = servoT.position;
-					
-					
-				//}
-				//else servoT.position = servoT.position;
-
-				
-				//pwm_setOcr(servoT.position);				
-				//servoT.prevPosition = servoT.position;
-				
-				//printf("\r\nPos : %d, PrevPros : %d", servoT.position, servoT.prevPosition);
-				//while(servoT.dest_sh < (servoT.dest - 100))
+					//
+					//servoT.prevPosition = servoT.position;
+					servoT.position -= 50*thermT.bary;
+					if(servoT.position < servoT.timeMin) servoT.position = servoT.timeMin;
+					pwm_setOcr(servoT.position);
+					delay_ms(1);
+					printf("\r\nPos-- : %d", servoT.position);
+				}
+				//else if(((((UINT)kalmanIrL.x % (UINT)kalmanIrR.x)) > 100))	// Object detect a extreme gauche
 				//{
-				//servoT.dest_sh = (servoT.dest_sh*MINUS_FILTER_SERVO) + servoT.dest*FILTER_SERVO;
-				//printf("\r\nDest : %d, DestSh : %d", servoT.dest, servoT.dest_sh);
-				//pwm_setOcr(servoT.dest_sh);
-				////pwm_setPosition(servoT.dest_sh);
-				//delay_ms(1);
+					//servoT.position = servoT.timeMin;
+					//pwm_setOcr(servoT.position);
+					//delay_ms(10);
 				//}
-				
+				//else if(((((UINT)kalmanIrR.x % (UINT)kalmanIrL.x)) > 100))	// Object detect a extreme droite
+				//{
+					//servoT.position = servoT.timeMax;
+					//pwm_setOcr(servoT.position);
+					//delay_ms(10);
+				//}
+				else servoT.position = servoT.position;
+					
 				servoT.dest_sh = servoT.dest;
 				servoT.dest = 0;
-			
-
 			}
 
-				//
-				//if(thermNorm[THERMAL_TP_SIZE + 1] > THERM_SEUIL_DETECT)
-				//{
-					//printf("\r\nBack to tracking");
-					//state = STATE_SCAN_LEFT;
-				//}
-					
-			//printf("\r\n %f \r\n", thermNorm[THERMAL_TP_SIZE + 1]);
-			
-			//while(servoT.dest_sh < servoT.timeMax) 
-			//{
-			//servoT.dest_sh = (servoT.dest_sh*MINUS_FILTER_SERVO) + servoT.dest*FILTER_SERVO;	
-			//pwm_setOcr(servoT.dest_sh);
-			////pwm_setPosition(servoT.dest_sh);
-			//delay_ms(1);
-			//}
-			
-			 //for (int pos=0; pos<500; pos++){
-				 ////move servo from 0 and 140 degrees forward
-				 //OCR3A = (int)servoEaseOutQuad(pos, 1000, 2000, dur);
-				 //delay_ms(50); //wait for the servo to move
-			 //}
-		
-			//if(servoT.dest_sh > 179) state = STATE_IDDLE;
-			//state = STATE_IDDLE;
 			state = STATE_OBJECT_DETECT;
 			break;
 			
@@ -882,24 +709,9 @@ void taskTracking(void *p)
 		
 			state = STATE_IDDLE;
 			//<! \Do nothings here
-			//servoTrackeur.position = 0;
-			
+
 			break;
 		}
-		
-		
-		//pwm_setPosition(servoT.dest_sh);
-		//printf("\r\nAngle : %u", servoTrackeur.position);
-		
-		//delay_ms(50);
-		
-		///*** TEST PWM SERVO ***/
-		/*pwm_rotationDroite();
-		_delay_ms(500);
-		pwm_positionCentrale();
-		_delay_ms(500);
-		pwm_rotationGauche();
-		_delay_ms(500);*/
 		
 		//uart_putchar('\n');
 		//uart_putchar('\r');

@@ -12,12 +12,8 @@
 
 */
 
-/*! \fn
- *  \brief
- *  \param 
- *  \param 
- *  \exception 
- *  \return
+/*! \fn		void adc_init()
+ *  \brief	Init adc module
  */
 void adc_init()
 {
@@ -43,12 +39,10 @@ void adc_init()
 }
 
 
-/*! \fn
- *  \brief
- *  \param 
- *  \param 
- *  \exception 
- *  \return
+/*! \fn		unsigned int adc_read(BYTE ch)
+ *  \brief	Get ADC raw value on a channel
+ *  \param	ch: the channel 
+ *  \return	The raw value of the ADC
  */
 unsigned int adc_read(BYTE ch)
 {
@@ -65,19 +59,17 @@ unsigned int adc_read(BYTE ch)
 	// wait for conversion to complete
 	// ADSC becomes ’0? again
 	// till then, run loop continuously
-	//TODO : maybe use interrupt ????
+	// TODO : maybe use interrupt ????
 	while(ADCSRA & (1<<ADSC));
 	
 	return (ADC);
 }
 
 
-/*! \fn
- *  \brief
- *  \param 
- *  \param 
- *  \exception 
- *  \return
+/*! \fn		FLOAT adc2MilliVolt(unsigned int adcData)
+ *  \brief	Convert ADC raw value in mV
+ *  \param	adcData: adc raw value
+ *  \return	The value in mV
  */
 FLOAT adc2MilliVolt(unsigned int adcData)
 {

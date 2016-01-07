@@ -31,10 +31,10 @@ UINT readInfrared(BYTE adcPin);
 */	
 
 
-/*! \fn UINT lookupInfrared(UINT indexLut) 
- *  \brief A member function.
- *  \param c a character.
- *  \return a character pointer.
+/*! \fn		UINT lookupInfrared(UINT indexLut) 
+ *  \brief	Return value from LUT
+ *  \param	adcResul: The adc raw value from IR sensor
+ *  \return	The value in mm from LUT
  */
 static UINT lookupInfrared(UINT adcResul)
 {	
@@ -58,10 +58,10 @@ static UINT lookupInfrared(UINT adcResul)
 
 /*** WARNING ! SORTING NOT OPTIMIZED, LOOK LECTURE ON SORTING ***/
 
-/*! \fn UINT readInfrared(BYTE adcPin) 
- *  \brief Acquire IR, sort, apply median and average
- *		   mode filter = median filter + average filter	
- *  \param 
+/*! \fn		UINT readInfrared(BYTE adcPin) 
+ *  \brief	Acquire IR, sort, apply median and average
+ *			mode filter = median filter + average filter	
+ *  \param	adcPin: pinout of IR sensor
  *  \return Clean IR acquisition
  */
 UINT readInfraredFilter(BYTE adcPin)
@@ -110,12 +110,10 @@ UINT readInfraredFilter(BYTE adcPin)
 }
 
 
-/*! \fn
- *  \brief
- *  \param 
- *  \param 
- *  \exception 
- *  \return
+/*! \fn		UINT readInfrared(BYTE adcPin)
+ *  \brief	Just read the ADC and return the value in mm from LUT
+ *  \param	adcPin: ADC channel
+ *  \return	The value in mm
  */
 UINT readInfrared(BYTE adcPin)
 {

@@ -26,16 +26,14 @@ static 	double position = 0.0f;
 static  double cog_x = 0.0f, prevCog_x = 0.0f;
 static const double offset = 1000.0f; // 1ms offset : the servo range from 1ms to 2ms
 	
-	
+/*! \fn		UINT get_termalTrackingValue(int matrix[], int outputType);
+*	\brief	give back the position for the servomotor, in degrees or duration of the high-state
+*	\param	matrix : thermal matrix
+*	\param	outputType : the type of position we want (degree or duration)
+*	\return the new position of the servo, in degrees or duration
+*/
 UINT get_termalTrackingValue(UINT prevPos, int *matrix, int outputType)
 {
-	/*! \fn UINT get_termalTrackingValue(int matrix[], int outputType);
-	*	\brief give back the position for the servomotor, in degrees or duration of the high-state
-	*	\param matrix : thermal matrix
-	*	\param outputType : the type of position we want (degree or duration)
-	*	\exception
-	*	\return the new position of the servo, in degrees or duration
-	*/
 	cog_x = 0.0f;
 	position = 1000.0f;
 	prevCog_x = 0.0f;
@@ -51,20 +49,6 @@ UINT get_termalTrackingValue(UINT prevPos, int *matrix, int outputType)
 		prevCog_x = cog_x;
 	}
 	else position = prevPos;
-	
-	
-	//if (outputType == DEGREES)
-	//{
-		//position = (cog_x*100.0f) * PAS_DEGREE;
-	//}
-	//else if (outputType == MILLISECONDS)
-	//{
-		//position = ((cog_x*1000.0f) * PAS_TIME_SERVO) + offset;
-	//}
-	//else
-	//{
-		////position = (cog_x*1000.0f) * PAS_TIME_SERVO + offset;
-	//}
 	
 	return (UINT)position;
 }

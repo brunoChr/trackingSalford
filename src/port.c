@@ -1,12 +1,8 @@
 #include "../lib/port.h"
 
 
-/*! \fn
- *  \brief
- *  \param 
- *  \param 
- *  \exception 
- *  \return
+/*! \fn		void port_init(void)
+ *  \brief	Init port
  */
 void port_init(void)
 {

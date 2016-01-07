@@ -34,7 +34,10 @@ double getSDV(const INT *data, UINT sizeData, double mean);
  *   Possible overflow of variable -> false mesurement, when object temp > 25.5°c 
 */
 
-
+/*! \fn		thermal thermal_init()
+ *  \brief	Init a thermal structure
+ *  \return	An initialize thermal structure
+ */
 thermal thermal_init()
 {
 	thermal result;
@@ -46,12 +49,11 @@ thermal thermal_init()
 }
 
 
-/*! \fn
- *  \brief
- *  \param 
- *  \param 
- *  \exception 
- *  \return
+/*! \fn		BOOL thermal_read(BYTE address, BYTE *data)
+ *  \brief	Read the temperature from thermal camera
+ *  \param	address: adress i2c of the sensor
+ *  \param	*data: pointer on buffer thermal
+ *  \return	error
  */
 static BOOL thermal_read(BYTE address, BYTE *data)
 {
@@ -73,12 +75,11 @@ static BOOL thermal_read(BYTE address, BYTE *data)
 
 
 
-/*! \fn BYTE * mesure_thermal(const BYTE *thermal_Buff, BYTE size)
- *  \brief
- *  \param 
- *  \param 
- *  \exception 
- *  \return a character pointer.
+/*! \fn		BYTE * mesure_thermal(const BYTE *thermal_Buff, BYTE size)
+ *  \brief	Decode the receive frame from the thermal sensor
+ *  \param	*thermal_Buff
+ *  \param  size: size of the data
+ *  \return Pointer on thermal buffer
  */
 INT* mesure_thermal(BYTE *thermal_Buff, BYTE size)
 {	
@@ -92,23 +93,6 @@ INT* mesure_thermal(BYTE *thermal_Buff, BYTE size)
 		
 	tPTAT = (thermal_Buff[1] << 8)|(thermal_Buff[0]);
 
-	//tP[0] = (BYTE)((thermal_Buff[3] << 8)|(thermal_Buff[2]) - THERM_OFFSET);
-	//tP[1] = (BYTE)((thermal_Buff[5] << 8)|(thermal_Buff[4]) - THERM_OFFSET);
-	//tP[2] = (BYTE)((thermal_Buff[7] << 8)|(thermal_Buff[6]) - THERM_OFFSET);
-	//tP[3] = (BYTE)((thermal_Buff[9] << 8)|(thermal_Buff[8]) - THERM_OFFSET);
-	//tP[4] = (BYTE)((thermal_Buff[11] << 8)|(thermal_Buff[10]) - THERM_OFFSET);
-	//tP[5] = (BYTE)((thermal_Buff[13] << 8)|(thermal_Buff[12]) - THERM_OFFSET);
-	//tP[6] = (BYTE)((thermal_Buff[15] << 8)|(thermal_Buff[14]) - THERM_OFFSET);
-	//tP[7] = (BYTE)((thermal_Buff[17] << 8)|(thermal_Buff[16]) - THERM_OFFSET);
-	//tP[8] = (BYTE)((thermal_Buff[19] << 8)|(thermal_Buff[18]) - THERM_OFFSET);
-	//tP[9] = (BYTE)((thermal_Buff[21] << 8)|(thermal_Buff[20]) - THERM_OFFSET);
-	//tP[10] = (BYTE)((thermal_Buff[23] << 8)|(thermal_Buff[22]) - THERM_OFFSET);
-	//tP[11] = (BYTE)((thermal_Buff[25] << 8)|(thermal_Buff[24]) - THERM_OFFSET);
-	//tP[12] = (BYTE)((thermal_Buff[27] << 8)|(thermal_Buff[26]) - THERM_OFFSET);
-	//tP[13] = (BYTE)((thermal_Buff[29] << 8)|(thermal_Buff[28]) - THERM_OFFSET);
-	//tP[14] = (BYTE)((thermal_Buff[31] << 8)|(thermal_Buff[30]) - THERM_OFFSET);
-	//tP[15] = (BYTE)((thermal_Buff[33] << 8)|(thermal_Buff[32]) - THERM_OFFSET);
-	
 	tP[0] = (thermal_Buff[3] << 8)|(thermal_Buff[2]);
 	tP[1] = (thermal_Buff[5] << 8)|(thermal_Buff[4]);
 	tP[2] = (thermal_Buff[7] << 8)|(thermal_Buff[6]);
@@ -127,20 +111,7 @@ INT* mesure_thermal(BYTE *thermal_Buff, BYTE size)
 	tP[15] = (thermal_Buff[33] << 8)|(thermal_Buff[32]);
 		
 	tPEC = thermal_Buff[34];
-	
-	//printf("TP : %d", tP);
-	//uart_putchar(tPTAT);
-	
-	//for(int i=0;i<16;i++)
-	//{
-		//printf("%d ", (BYTE)tP[i]);
-	//}
-	//
-	//printf("\r\n");
-	//
-	
-	//uart_putchar(tPEC);
-	
+
 	return tP;
 }
 
@@ -180,52 +151,11 @@ static int D6T_checkPEC( BYTE *buf, int pPEC )
 	return (crc == buf[pPEC]);
 }
 
-//static int i,j = 1;
-//static float sum_x = 0;
-//static float cog_x = 0;
-//static float total_pixelValue = 0;
-//
-//
-//double gravityCenter(int *matrix)
-//{
-	///*! \fn double gravityCenter(int matrix[])
-	//*	\brief give back the gravity center of the matrix given in argument
-	//*	\param matrix : thermal matrix
-	//*	\exception
-	//*	\return the gravity center of the termal matrix
-	//*/
-//
-	//total_pixelValue = 0;
-	//sum_x = 0;
-	//cog_x = 0;
-	//
-	//for(i = 0 ; i< THERMAL_TP_SIZE ; i++)
-	//{
-		////printf("%d ", matrice[i]);
-		//
-		//if (((i%3) == 0) && (i>0))	j = 1;
-		//
-		//sum_x += matrix[i] * j;
-		//j++;
-		//
-		//total_pixelValue += matrix[i];
-		//printf("\r\nCOg : %f", cog_x);
-	//}
-	//
-	////printf("\r\nSum : %f", sum_x);
-	////printf("\r\nTot : %f", total_pixelValue);
-	//
-	//if(total_pixelValue == 0) total_pixelValue = 1;
-	//
-	//printf("\r\ntotal: %f, sum = %f", total_pixelValue, sum_x);		
-	//cog_x = sum_x/total_pixelValue;
-	//
-	//printf("\r\nCOg : %f", cog_x);
-//
-	//return cog_x;
-//}
-
-
+/*! \fn		double barycentre(int *matrix)
+ *  \brief	Compute the centroid
+ *  \param	*matrix: pointer to the thermal buffer 
+ *  \return	The centroid value
+ */
 double barycentre(int *matrix)
 {
 	j = 0;
@@ -238,8 +168,8 @@ double barycentre(int *matrix)
 	nbPoint = 0.0f;
 	cnt = 0;
 
-	moyenne = getMean(matrix, THERMAL_TP_SIZE);
-	ecartType = getSDV(matrix, THERMAL_TP_SIZE, moyenne);
+	moyenne = getMean(matrix, THERMAL_TP_SIZE);					//<! \Compute the mean
+	ecartType = getSDV(matrix, THERMAL_TP_SIZE, moyenne);		//<! \Compute the std
 	 
 	//min = moyenne - ecartType;
 	max = moyenne + ecartType;
@@ -264,10 +194,7 @@ double barycentre(int *matrix)
 	
 	if(nbPoint != 0.0f)	valeurx /= nbPoint;
 	else valeurx = 0.0f;
-	
-	//printf("Valeur_x = %f\n", valeurx);
-	//printf("NbPoint = %f\n", nbPoint);
-	//
+
 	return valeurx;
 }
 

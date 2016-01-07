@@ -8,6 +8,11 @@
 #include "../lib/servo.h"
 #include "../lib/pwm.h"
 
+/*! \fn		servo servo_init()
+ *  \brief	Init a servo structure
+ *  \param	none
+ *  \return An initialize servo structure
+ */
 servo servo_init()
 {
 	servo result;
@@ -29,7 +34,10 @@ servo servo_init()
 	return(result);
 }
 
-
+/*! \fn		void servoCommand(servo Servo, INT error)
+ *  \brief	PID for servo : MISSED FEEDBACK VALUE, can be encoder, or reconstruct speed from EMF
+ *  \param	Servo: strucure servo, error: error between command and feedback
+ */
 void servoCommand(servo Servo, INT error)
 {	
 	double speed;
@@ -51,37 +59,12 @@ void servoCommand(servo Servo, INT error)
 	
 }
 
-
-// quadratic easing out - decelerating to zero velocity
-// t: current time, b: beginning value, c: change in value, d: duration
+/*! \fn		float servoEaseOutQuad (float t, float b, float c, float d)
+ *  \brief	quadratic easing out - decelerating to zero velocity
+ *  \param	t: current time, b: beginning value, c: change in value, d: duration
+ *  \return The easing value
+ */
 float servoEaseOutQuad (float t, float b, float c, float d)
 {
 	return -c *(t/=d)*(t-2) + b;
 }
-
-/* Example of calling this function 
- 
- int dur = 100; //duration is 100 loops
- for (int pos=0; pos<dur; pos++){
-	 //move servo from 0 and 140 degrees forward
-	 myServo.write(Easing::easeInOutCubic(pos, 0, 140, dur));
-	 delay(15); //wait for the servo to move
- }
-*/
-
-//void smoothmove(int cposition, int oldposition) {
-	//int moveAngle;
-//
-	//while(cposition != oldposition) {
-//
-		//moveAngle = oldposition + MAX_STEP_PER_FRAME; //this is the raw uneased value
-		//if( moveAngle > cposition)
-		//moveAngle = cposition;
-//
-		//// code needed using similar logic for cposition < oldposition
-//
-		//oldposition += Rad2Angle( 0.5 - 0.5 * cos(Angle2Rad(moveAngle) * PI) );
-		//myservo.write(oldposition);
-		//myservos.refresh();
-	//}
-//}

@@ -65,12 +65,8 @@ void pwm_stop()
 }
 
 
-/*! \fn
- *  \brief
- *  \param 
- *  \param 
- *  \exception 
- *  \return
+/*! \fn		void pwm_init()
+ *  \brief	Init the PWM module
  */
 void pwm_init()
 {
@@ -78,15 +74,15 @@ void pwm_init()
 	* Initialisation du PWM
 	*/
 
-	//sei(); // Interrupt are enable at RTOS startup
+	//sei(); //<! /Interrupt are enable at RTOS startup
 	
 	//pwm_positionCentrale();
 	
 	/*Utilisation du port B*/
-	DDRE |= (1 << DDE3);// PORTE3 en sortie
-	PORTE |= (1 << PE3); // PORTE3 active High
+	DDRE |= (1 << DDE3);	//<! /PORTE3 en sortie
+	PORTE |= (1 << PE3);	//<! /PORTE3 active High
 			
-	/*Toggle OC1A on compare match*/
+	//<! /Toggle OC1A on compare match
 	TCCR3A |= (1 << COM3A1);
 	TCCR3A |= (0 << COM3A0);
 	
@@ -94,9 +90,9 @@ void pwm_init()
 	* Valeur de TOP pour l'overflow = 19 999
 	*/
 
-	//ICR3 = 19999;	//50hz
-	ICR3 = 24999;	//40hz
-	//ICR3 = 29999;	//30hz
+	//ICR3 = 19999;	//<! /50hz
+	ICR3 = 24999;	//<! /40hz
+	//ICR3 = 29999;	//<! /30hz
 
 	TCCR3B |= (1 << WGM33);
 	TCCR3B |= (1 << WGM32);
@@ -155,12 +151,8 @@ void pwm_rotationDroite(void)
 }
 
 
-/*! \fn
- *  \brief
- *  \param 
- *  \param 
- *  \exception 
- *  \return
+/*! \fn		void pwm_positionCentrale(void)
+ *  \brief	Go to centre
  */
 void pwm_positionCentrale(void)
 {
@@ -169,24 +161,18 @@ void pwm_positionCentrale(void)
 	pos = 90;
 }
 
-/*! \fn
- *  \brief
- *  \param 
- *  \param 
- *  \exception 
- *  \return
+/*! \fn		void pwm_setOcr(INT time)
+ *  \brief	Set OCR register
+ *  \param	time: Value of the register
  */
 void pwm_setOcr(INT time)
 {
 	OCR3A = time;
 }
 
-/*! \fn
- *  \brief
- *  \param 
- *  \param 
- *  \exception 
- *  \return
+/*! \fn		void pwm_setPosition(INT angle)
+ *  \brief	Set the position of the servo from the angle
+ *  \param	angle: angle to set the servo
  */
 void pwm_setPosition(INT angle)
 {
@@ -225,30 +211,3 @@ void pwm_setPosition(INT angle)
 	pos = angle;
 
 }
-
-//BYTE pwm_getPosition(char typeSortie)
-//{
-	///*! \fn unsigned int pwm_getPosition(int typeSortie)
-	//*	\brief Give back the position of the servo, in degrees or in milliseconds
-	//*	\param typeSortie
-	//*	\param position : actual position of the servomotor, in degrees
-	//*	\exception Return -1 if we ask somthing else than angle or duration
-	//*	\return the new position of the servo, in degrees or milliseconds
-	//*/
-	//switch (typeSortie)
-	//{
-		//case ANGLE: //!< if the position is ask in degrees, we give back the angle position
-			//return pos;
-			//break;
-		//
-		//case DUREE_ETAT_HAUT: //!< if the position is a duration, we give back the duration of the high-state (OCR3A)
-			//return tableDeCalcul(pos);
-			//break;
-		//
-		//default:
-			//return -1;
-			//break;
-	//}
-	//return -1;
-//}
-

@@ -42,10 +42,10 @@
 
 /*** DEFINE CONST ***/
 
-#define TAILLE_DATA 4*4						//!< \Matrix temp sensor
-#define ADC_CH_IR_RIGHT	0					//!< \ADC channel of the right IR sensor
-#define ADC_CH_IR_LEFT	1					//!< \ADC channel of the left IR sensor
-#define DEBUG 0								//!< \Debug macro
+#define TAILLE_DATA 4*4							//!< \Matrix temp sensor
+#define ADC_CH_IR_RIGHT	0						//!< \ADC channel of the right IR sensor
+#define ADC_CH_IR_LEFT	1						//!< \ADC channel of the left IR sensor
+#define DEBUG 0									//!< \Debug macro
 
 #define DELAY_TSENSOR		1					//!< Delay for task sensor in ms
 #define DELAY_TSERIALTX		1					//!< Delay for task serial tx in ms
@@ -57,7 +57,7 @@
 #define	T_ACQ_THERM 20	//<! \Acquisition period for thermal in ms
 #define TIMEOUT_CMD	5	//<! \Timout in ms for received complete CMD : #x 
 
-#define DELAY_CMD	100	//in us
+#define DELAY_CMD	100	//<! \in us
 
 /*** WARNING MACRO USE FOR DEBUGGING, WILL BE DELETE ***/
 #define DEBUG 0

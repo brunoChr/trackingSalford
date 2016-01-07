@@ -88,18 +88,6 @@ static const __flash UINT lookupIR[SIZE_LUT_IR] =
 	163U,162U
 };
 	
-
-/*** GLOBAL VARIABLE ***/
-// Read infrared
-//extern UINT adcResultCh;
-//extern  distanceIR; // NOT USES AT THE TIME
-//extern UINT sortedValues[NUM_READS_ADC];
-//extern UINT iMed,jMed, kMed;	//<! \i for number af acquisition; j for sorting
-//extern UINT returnval;
-// LUT VARIABLE
-//extern UINT value;						//!< Returned value of the lookup Table
-	
-	
 /*** PROTOTYPE GLOBAL FUNCTION ***/
 //int sharp_IR_interpret_GP2Y0A02YK(int value);
 //extern UINT lookupInfrared(UINT indexLut);

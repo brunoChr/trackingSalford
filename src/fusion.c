@@ -22,12 +22,10 @@ double *normalizeTherm(INT *therm);
 double getMean(const INT *data, UINT sizeData);
 double getSDV(const INT *data, UINT sizeData, double mean);
 
-/*! \fn
- *  \brief
- *  \param 
- *  \param 
- *  \exception 
- *  \return
+/*! \fn		double getMean(const INT *data, UINT sizeData)
+ *  \brief	Calcule the mean
+ *  \param	*date: data on which we calculate it mean, sizeData: the longer of the Data
+ *  \return	The mean
  */
 double getMean(const INT *data, UINT sizeData)
 {
@@ -41,7 +39,11 @@ double getMean(const INT *data, UINT sizeData)
 	return (double)(sumMean/sizeData);
 }
 
-
+/*! \fn		double getSDV(const INT *data, UINT sizeData, double mean)
+ *  \brief	Calcule the standart deviation
+ *  \param	*date: data on which we calculate it standart deviation, sizeData: the longer of the Data, mean: the mean to avoid to recalculate
+ *  \return	The standart deviation
+ */
 double getSDV(const INT *data, UINT sizeData, double mean)
 {
 	sum_deviation = 0.0f;
@@ -53,12 +55,10 @@ double getSDV(const INT *data, UINT sizeData, double mean)
 }
 
 
-/*! \fn
- *  \brief
- *  \param 
- *  \param 
- *  \exception 
- *  \return
+/*! \fn		double normalizeIr(UINT distance)
+ *  \brief	Normalise data from IR sensor
+ *  \param	distance: distance in mm
+ *  \return	The normalize distance
  */
 double normalizeIr(UINT distance)
 {
@@ -72,22 +72,15 @@ double normalizeIr(UINT distance)
 }
 
 
-/*! \fn
- *  \brief
- *  \param 
- *  \param 
- *  \exception 
- *  \return
+/*! \fn		double *normalizeTherm(INT *therm)
+ *  \brief	Normalize data from Thermal sensor
+ *  \param	*therm: pointer on thermal data
+ *  \return	The normalize temperature
  */
 double *normalizeTherm(INT *therm)
 {
 	static double thermNorm[THERMAL_TP_SIZE];
 	//static double sumTherm;
-	/*
-	Centered: X ? mean									-> centering just makes the mean of the data equal to 0.
-	Standardized: (X ? mean)/sd							-> Standardizing turns the data into z-scores
-	Normalized:  (X ? min(X)) / (max(X) ? min(X))		-> Normalizing in this sense rescales the data to the unit interval.
-	*/
 	//sumTherm = 0;
 	
 	for (int i = 0; i < THERMAL_TP_SIZE; i++)
@@ -101,4 +94,3 @@ double *normalizeTherm(INT *therm)
 	
 	return thermNorm;
 }
-

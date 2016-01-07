@@ -29,10 +29,10 @@
 #define SERVO_TIME_HIGH 2000
 #define SERVO_TIME_MIDDLE ((SERVO_TIME_HIGH + SERVO_TIME_LOW)/2)  
 
-#define FRAME_RATE          25    // milliseconds per frame
-#define SERVO_SPEED			200   // this the time in ms to move 60 degrees
-#define MAX_STEP_PER_FRAME  (60 / (SERVO_SPEED/ FRAME_RATE))	// max degrees servo can move in one frame
-#define SERVO_TIME_DEGREE	(SERVO_SPEED/60)					// Time for move of 1°
+#define FRAME_RATE          25    //<! \milliseconds per frame
+#define SERVO_SPEED			200   //<! \this the time in ms to move 60 degrees
+#define MAX_STEP_PER_FRAME  (60 / (SERVO_SPEED/ FRAME_RATE))	//<! \max degrees servo can move in one frame
+#define SERVO_TIME_DEGREE	(SERVO_SPEED/60)					//<! \Time for move of 1°
 
 
 /*** EASING ***/

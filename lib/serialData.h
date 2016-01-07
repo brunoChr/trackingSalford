@@ -24,7 +24,7 @@
 //Therm
 #define NBR_DATA	16
 //CRC
-#define POLYNOMIAL 0x31 //P(x)=x^8+x^5+x^4+1 = 100110001
+#define POLYNOMIAL 0x31 //<! \P(x)=x^8+x^5+x^4+1 = 100110001
 
 
 /*** TYPEDEF DEFINITION ***/

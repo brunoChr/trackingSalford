@@ -29,11 +29,10 @@ static BYTE computeCrc(const BYTE *data, BYTE nbrOfBytes);
 //static BYTE checksumCalculation(BYTE *data, BYTE size);
 
 
-/*! \fn BOOL sendFrameTh(const BYTE *data, BYTE sizeData)
- *  \brief format data to be send by serial
- *  \param 
- *  \param 
- *  \exception 
+/*! \fn		BOOL sendFrameTh(const BYTE *data, BYTE sizeData)
+ *  \brief	format data to be send by serial
+ *  \param	*data: pointer on thermal data
+ *  \param	sizeData: size of the data to send
  *  \return error
  */
 BOOL sendFrameTh(const INT *data, BYTE sizeData)
@@ -83,11 +82,10 @@ BOOL sendFrameTh(const INT *data, BYTE sizeData)
 }
 
 
-/*! \fn BOOL sendFrameIr(BYTE id, UINT dataIr)
- *  \brief format data to be send by serial
- *  \param 
- *  \param 
- *  \exception 
+/*! \fn		BOOL sendFrameIr(BYTE id, UINT dataIr)
+ *  \brief	format data to be send by serial
+ *  \param	id: ir sensor 1 or 2
+ *  \param	dataIr: distance from sensor
  *  \return error
  */
 BOOL sendFrameIr(BYTE id, UINT dataIr)
@@ -130,11 +128,10 @@ BOOL sendFrameIr(BYTE id, UINT dataIr)
 }
 
 
-/*! \fn BOOL sendFrameIr(BYTE id, UINT position)
- *  \brief format data to be send by serial
- *  \param 
- *  \param 
- *  \exception 
+/*! \fn		BOOL sendFrameServo(BYTE id, BYTE position)
+ *  \brief	format data to be send by serial
+ *  \param	position: position to send
+ *  \param
  *  \return error
  */
 BOOL sendFrameServo(BYTE id, BYTE position)
@@ -176,51 +173,11 @@ BOOL sendFrameServo(BYTE id, BYTE position)
 }
 
 
-/*! \fn checksumCalculation(BYTE *data, BYTE size)
- *  \brief compute checksum of data
- *  \param data : pointer on begin of data for calculation of checksum
- *  \param 
- *  \exception 
- *  \return checksum
- */
-//static BYTE checksumCalculation(BYTE *data, BYTE size)
-//{
-	////int array[8];
-	//int i, num, negative_sum = 0, positive_sum = 0;
-	//float total = 0.0, average;
-	//
-	//num = sizeof(BYTE)*size;
-	//
-	///*  Summation starts */
-	//for (i = 0; i < num; i++)
-	//{
-		//if (data[i] < 0)
-		//{
-			//negative_sum = negative_sum + data[i];
-		//}
-		//else if (data[i] > 0)
-		//{
-			//positive_sum = positive_sum + data[i];
-		//}
-		//else if (data[i] == 0)
-		//{
-			//;
-		//}
-		//total = total + data[i] ;
-	//}
-	//
-	//average = (total / num);
-	//
-	//return average;
-//}
-
-
-/*! \fn BYTE computeCrc(const BYTE *data, BYTE nbrOfBytes)
- *  \brief calculates checksum for n bytes of data
- *  \param *data checksum is built based on this data
- *  \param nbrOfBytes checksum is built for n bytes of data
- *  \exception 
- *  \return checksum
+/*! \fn		BYTE computeCrc(const BYTE *data, BYTE nbrOfBytes)
+ *  \brief	calculates crc for n bytes of data
+ *  \param	*data crc is built based on this data
+ *  \param	nbrOfBytes crc is built for n bytes of data
+ *  \return crc
  */
 static BYTE computeCrc(const BYTE *data, BYTE nbrOfBytes)
 {
